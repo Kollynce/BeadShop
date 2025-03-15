@@ -113,25 +113,29 @@ const router = createRouter({
       beforeEnter: requireAdmin
     }
   ],
-  // Ensure trailing slashes are handled correctly
-  strict: false
+  strict: true // Enable strict mode for better path matching
 })
 
-// Add a catch-all route for GitHub Pages 404 handling
+// Simplified catch-all route
 router.addRoute({
   path: '/:pathMatch(.*)*',
-  redirect: '/'
+  name: 'not-found',
+  redirect: (to) => {
+    // Clean redirect to home page without preserving query params
+    return { path: '/' }
+  }
 })
 
-// Navigation guard for protected routes
-router.beforeEach((to, from, next) => {
+// Improved navigation guard
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAuth && !authStore.user) {
-    next('/login')
+    // Redirect to login without preserving current URL
+    next({ path: '/login' })
   } else if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    // Redirect non-admin users trying to access admin pages
-    next('/')
+    // Redirect non-admin users to home without preserving URL
+    next({ path: '/' })
   } else {
     next()
   }
