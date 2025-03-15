@@ -3,8 +3,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  // Make sure base matches your GitHub Pages URL structure
-  base: '/',  // or use '/your-repo-name/' if not using a custom domain
+  // Update the base path for GitHub Pages deployment
+  base: '/BeadShop/',  // Change this to match your GitHub repository name
   plugins: [vue()],
   resolve: {
     alias: {
@@ -12,5 +12,19 @@ export default defineConfig({
       'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
-  assetsInclude: ['**/*.PNG', '**/*.png']
+  assetsInclude: ['**/*.PNG', '**/*.png'],
+  build: {
+    // Ensure assets are properly resolved
+    assetsDir: 'assets',
+    // Generate source maps for easier debugging
+    sourcemap: true,
+    // Optimize CSS to avoid path issues
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        // Ensure consistent file naming
+        manualChunks: undefined
+      }
+    }
+  }
 })

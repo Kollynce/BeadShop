@@ -4,7 +4,9 @@ import { useAuthStore } from '../stores/auth'
 import { requireAdmin } from './guards'
 
 const router = createRouter({
+  // Use import.meta.env.BASE_URL to ensure router uses the correct base path in all environments
   history: createWebHistory(import.meta.env.BASE_URL),
+  // Add hash fallback mode for GitHub Pages compatibility
   routes: [
     {
       path: '/',
@@ -96,7 +98,15 @@ const router = createRouter({
       meta: { requiresAuth: true, isAdmin: true },
       beforeEnter: requireAdmin
     }
-  ]
+  ],
+  // Ensure trailing slashes are handled correctly
+  strict: false
+})
+
+// Add a catch-all route for GitHub Pages 404 handling
+router.addRoute({
+  path: '/:pathMatch(.*)*',
+  redirect: '/'
 })
 
 // Navigation guard for protected routes

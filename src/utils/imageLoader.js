@@ -1,8 +1,7 @@
 import { ref } from 'vue';
 
 // Base URL for assets based on deployment environment
-const baseUrl = import.meta.env.MODE === 'production' ? 
-  import.meta.env.BASE_URL || '/' : '/';
+const baseUrl = import.meta.env.BASE_URL || '/';
 
 /**
  * Get proper image URL with fallback handling
@@ -29,6 +28,25 @@ export function getImageUrl(path) {
     // Fallback to public directory
     return `${baseUrl}${cleanPath}`;
   }
+}
+
+/**
+ * Get URL for public folder images accounting for the base URL
+ * @param {string} path - Image path within public folder
+ * @returns {string} - Full URL to the public image
+ */
+export function getPublicImageUrl(path) {
+  if (!path) return null;
+  
+  if (path.startsWith('http')) {
+    return path;
+  }
+  
+  // Ensure the path doesn't have a leading slash when combined with baseUrl
+  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  
+  // Combine the base URL with the path
+  return `${baseUrl}${cleanPath}`;
 }
 
 /**
