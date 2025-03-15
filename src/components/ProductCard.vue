@@ -41,7 +41,7 @@
 import { ref, nextTick } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { formatCurrency } from '@/utils/currency';
-import { getImageUrl, getPublicImageUrl } from '@/utils/imageLoader';
+import { getImageUrl } from '@/utils/imageLoader';
 
 const props = defineProps({
   product: {
@@ -58,61 +58,71 @@ const cartStore = useCartStore();
 const animatingItem = ref(null);
 const cartAnimationEl = ref(null);
 
-// Process product image with multiple fallbacks
+// Process product image with multiple fallbacks similar to ProductDetailView
 const processProductImage = () => {
-  // First try the product's main image paths
-  if (props.product.image) {
-    return getImageUrl(props.product.image);
-  }
+  const defaultImage = getImageUrl('placeholder.jpg');
   
-  if (props.product.imageUrl) {
-    return props.product.imageUrl;
-  }
-  
-  // Then try images array if it exists
+  // First try the product's images array if it exists
   if (props.product.images && props.product.images.length > 0) {
     const firstImage = props.product.images[0];
     
     // Handle both string and object formats
     if (typeof firstImage === 'string') {
-      return firstImage;
+      return processImageUrl(firstImage);
     } else if (firstImage.main) {
-      return firstImage.main;
+      return processImageUrl(firstImage.main);
     } else if (firstImage.url) {
-      return firstImage.url;
+      return processImageUrl(firstImage.url);
     }
   }
   
+  // Then try individual image fields
+  if (props.product.image) {
+    return processImageUrl(props.product.image);
+  }
+  
+  if (props.product.imageUrl) {
+    return processImageUrl(props.product.imageUrl);
+  }
+  
   // If no product images found, use placeholder
-  return getPublicImageUrl('images/placeholder.jpg');
+  return defaultImage;
 };
 
-// Handle image errors
+// Add processImageUrl function from ProductDetailView
+const processImageUrl = (url) => {
+  if (!url) return null;
+  
+  // Handle base64 images with the incorrect prefix
+  if (typeof url === 'string' && url.startsWith('base64://')) {
+    return url.replace('base64://', '');
+  }
+  
+  // For normal URLs
+  return url;
+}
+
+// Improve error handler to match ProductDetailView
 const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
   
-  // Try public images folder first
-  event.target.src = getPublicImageUrl('images/placeholder.jpg');
+  // Use a locally hosted fallback image
+  event.target.src = getImageUrl('placeholder.jpg');
   
-  // If public folder fallback fails, try assets folder
-  event.target.onerror = () => {
-    event.target.src = getImageUrl('placeholder.jpg');
-    
-    // If assets folder fallback fails, use inline SVG as final fallback
-    event.target.onerror = function() {
-      const parent = event.target.parentNode;
-      if (parent) {
-        const svgElement = document.createElement('div');
-        svgElement.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
-            <rect width="100%" height="100%" fill="#f0f0f0"/>
-            <path d="M12 6v12M6 12h12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        `;
-        svgElement.className = 'broken-image';
-        parent.replaceChild(svgElement, event.target);
-      }
-    };
+  // If local fallback fails, use inline SVG as final fallback
+  event.target.onerror = function() {
+    const parent = event.target.parentNode;
+    if (parent) {
+      const svgElement = document.createElement('div');
+      svgElement.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+          <rect width="100%" height="100%" fill="#f0f0f0"/>
+          <path d="M12 6v12M6 12h12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+      svgElement.className = 'broken-image';
+      parent.replaceChild(svgElement, event.target);
+    }
   };
 };
 
