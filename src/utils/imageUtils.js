@@ -6,12 +6,12 @@
 export function getImageUrl(path) {
   const basePath = import.meta.env.BASE_URL || '/';
   
-  // Handle external URLs (starting with http or https)
+  // Handle external URLs
   if (path && (path.startsWith('http://') || path.startsWith('https://'))) {
     return path;
   }
 
-  // For local images, ensure they're correctly prefixed with the base URL
+  // For local images
   if (path && path.startsWith('/')) {
     return `${basePath}${path.slice(1)}`;
   }
@@ -20,11 +20,10 @@ export function getImageUrl(path) {
 }
 
 /**
- * Generate a placeholder image as a data URI
- * @returns {string} - Data URI for a placeholder image
+ * Generate SVG placeholder as a data URI
  */
 export function generatePlaceholder() {
-  return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjYWFhIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+  return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+CiAgPHJlY3QgZmlsbD0iI2YwZjBmMCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiLz4KICA8dGV4dCBmaWxsPSIjODg4ODg4IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjEwMCIgeT0iMTA1Ij5JbWFnZSBOb3QgRm91bmQ8L3RleHQ+CiAgPGcgc3Ryb2tlPSIjODg4ODg4IiBzdHJva2Utd2lkdGg9IjIiPgogICAgPHJlY3QgeD0iNjAiIHk9IjUwIiB3aWR0aD0iODAiIGhlaWdodD0iNjAiIGZpbGw9Im5vbmUiLz4KICAgIDxsaW5lIHgxPSI2MCIgeTE9IjUwIiB4Mj0iMTQwIiB5Mj0iMTEwIi8+CiAgICA8bGluZSB4MT0iMTQwIiB5MT0iNTAiIHgyPSI2MCIgeTI9IjExMCIvPgogIDwvZz4KPC9zdmc+';
 }
 
 /**
