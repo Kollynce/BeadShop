@@ -126,7 +126,7 @@ const router = createRouter({
           return;
         }
         // Otherwise go to home
-        next('/');
+        //next('/');
       }
     }
   ],
