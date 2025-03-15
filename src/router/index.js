@@ -121,21 +121,31 @@ router.addRoute({
   path: '/:pathMatch(.*)*',
   name: 'not-found',
   redirect: () => {
-    // Clean redirect to home page with no query parameters
-    return { path: '/', replace: true }
+    return { path: '/', replace: true, query: {} }
   }
 })
 
-// Improved navigation guard
+// Navigation guard to clean up query parameters on direct page loads
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
+  // Identify problematic query parameters
+  if (to.query.p === '/' || to.query.q) {
+    // This is likely a page reload with problematic query params
+    // Redirect to the same route but with clean query params
+    return next({ 
+      path: to.path, 
+      query: {}, // Remove all query params
+      replace: true // Replace current history entry
+    });
+  }
+
   if (to.meta.requiresAuth && !authStore.user) {
-    // Redirect to login with replace to avoid history stacking
-    next({ path: '/login', replace: true })
+    // Redirect to login with clean redirect
+    next({ path: '/login', replace: true, query: {} })
   } else if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    // Redirect non-admin users to home with replace
-    next({ path: '/', replace: true })
+    // Redirect non-admin users to home
+    next({ path: '/', replace: true, query: {} })
   } else {
     next()
   }
