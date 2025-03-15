@@ -164,34 +164,26 @@ if (typeof window !== 'undefined') {
     const savedSearch = sessionStorage.getItem('spaSearch') || '';
     const savedHash = sessionStorage.getItem('spaHash') || '';
     
-    // Only process saved navigation if we're at the root and have saved data
-    if (window.location.pathname === '/' && savedPath && savedPath !== '/') {
-      // Check if the saved navigation is recent (within last 5 seconds)
-      const isRecent = timestamp && (Date.now() - parseInt(timestamp)) < 5000;
+    // Clear navigation data to prevent reusing it
+    sessionStorage.removeItem('spaPath');
+    sessionStorage.removeItem('spaSearch');
+    sessionStorage.removeItem('spaHash');
+    sessionStorage.removeItem('spaNavTimestamp');
+    
+    // Process saved navigation if we have a path
+    if (savedPath) {
+      // Increase time window to 30 seconds for slower connections
+      const isRecent = timestamp && (Date.now() - parseInt(timestamp)) < 30000;
       
-      if (isRecent) {
-        // Clear the navigation data first to prevent loops
-        sessionStorage.removeItem('spaPath');
-        sessionStorage.removeItem('spaSearch');
-        sessionStorage.removeItem('spaHash');
-        sessionStorage.removeItem('spaNavTimestamp');
-        
+      if (isRecent && savedPath !== '/') {
         // Reconstruct the full path
         const fullPath = savedPath + savedSearch + savedHash;
         
         // Use replace to avoid adding to history
         router.replace(fullPath).catch(err => {
           console.error('Navigation error:', err);
-          // If navigation fails, stay on current page
         });
       }
-    } else {
-      // Always clear session storage navigation data once router is ready
-      // to prevent unexpected redirects on subsequent reloads
-      sessionStorage.removeItem('spaPath');
-      sessionStorage.removeItem('spaSearch');
-      sessionStorage.removeItem('spaHash');
-      sessionStorage.removeItem('spaNavTimestamp');
     }
   });
 }
