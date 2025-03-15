@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
+  // Make sure base matches your GitHub Pages URL structure
+  base: '/',  // or use '/your-repo-name/' if not using a custom domain
   plugins: [vue()],
   resolve: {
     alias: {
@@ -10,6 +12,5 @@ export default defineConfig({
       'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
-  base: '/BeadShop/', // Update this to match your actual repository name
   assetsInclude: ['**/*.PNG', '**/*.png']
 })

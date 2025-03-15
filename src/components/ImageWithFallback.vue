@@ -1,26 +1,20 @@
 <template>
-  <img :src="processedSrc" :alt="alt" class="image-with-fallback" v-img-fallback />
+  <img 
+    :src="imgSrc" 
+    @error="handleError" 
+    v-bind="$attrs"
+  />
 </template>
 
-<script>
-import { getImageUrl } from '../utils/imageUtils';
+<script setup>
+import { useImage } from '../utils/imageLoader';
 
-export default {
-  name: 'ImageWithFallback',
-  props: {
-    src: {
-      type: String,
-      default: ''
-    },
-    alt: {
-      type: String,
-      default: 'Image'
-    }
-  },
-  computed: {
-    processedSrc() {
-      return getImageUrl(this.src);
-    }
+const props = defineProps({
+  src: {
+    type: String,
+    default: ''
   }
-}
+});
+
+const { imgSrc, handleError } = useImage(props.src);
 </script>
