@@ -148,7 +148,12 @@ const getImageSrc = (imageUrl) => {
   return imageUrl;
 };
 
-const imageUrl = computed(() => getImageUrl(props.product.image || 'placeholder.jpg'));
+const imageUrl = computed(() => {
+  if (!props.product || !props.product.image) {
+    return getImageUrl('placeholder.jpg');
+  }
+  return getImageUrl(props.product.image);
+});
 </script>
 
 <style scoped>
