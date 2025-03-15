@@ -9,11 +9,10 @@
     </div>
     
     <router-link :to="`/product/${product.id}`" class="cursor-pointer block">
-      <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg">
+      <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-light-neutral-100 dark:bg-dark-neutral-800">
         <img 
-          :src="productImageUrl" 
+          :src="processProductImage()" 
           :alt="product.name"
-          v-img-fallback
           class="h-60 w-full object-cover object-center group-hover:opacity-90" 
           @error="handleImageError">
       </div>
@@ -39,12 +38,11 @@
 </template>
 
 <script setup>
-import { ref, nextTick, computed } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { formatCurrency } from '@/utils/currency';
-import { getImageUrl } from '@/utils/imageLoader';
+import { getImageUrl, getPublicImageUrl } from '@/utils/imageLoader';
 
-// Update component props to accept processImageUrl function
 const props = defineProps({
   product: {
     type: Object,
@@ -52,13 +50,71 @@ const props = defineProps({
   },
   processImageUrl: {
     type: Function,
-    default: url => url // Default function just returns the URL unchanged
+    default: url => url
   }
 });
 
 const cartStore = useCartStore();
 const animatingItem = ref(null);
 const cartAnimationEl = ref(null);
+
+// Process product image with multiple fallbacks
+const processProductImage = () => {
+  // First try the product's main image paths
+  if (props.product.image) {
+    return getImageUrl(props.product.image);
+  }
+  
+  if (props.product.imageUrl) {
+    return props.product.imageUrl;
+  }
+  
+  // Then try images array if it exists
+  if (props.product.images && props.product.images.length > 0) {
+    const firstImage = props.product.images[0];
+    
+    // Handle both string and object formats
+    if (typeof firstImage === 'string') {
+      return firstImage;
+    } else if (firstImage.main) {
+      return firstImage.main;
+    } else if (firstImage.url) {
+      return firstImage.url;
+    }
+  }
+  
+  // If no product images found, use placeholder
+  return getPublicImageUrl('images/placeholder.jpg');
+};
+
+// Handle image errors
+const handleImageError = (event) => {
+  console.error('Image failed to load:', event.target.src);
+  
+  // Try public images folder first
+  event.target.src = getPublicImageUrl('images/placeholder.jpg');
+  
+  // If public folder fallback fails, try assets folder
+  event.target.onerror = () => {
+    event.target.src = getImageUrl('placeholder.jpg');
+    
+    // If assets folder fallback fails, use inline SVG as final fallback
+    event.target.onerror = function() {
+      const parent = event.target.parentNode;
+      if (parent) {
+        const svgElement = document.createElement('div');
+        svgElement.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+            <rect width="100%" height="100%" fill="#f0f0f0"/>
+            <path d="M12 6v12M6 12h12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        `;
+        svgElement.className = 'broken-image';
+        parent.replaceChild(svgElement, event.target);
+      }
+    };
+  };
+};
 
 const addToCart = async (product) => {
   // Get button position as starting point
@@ -106,70 +162,7 @@ const addToCart = async (product) => {
     // Fallback if animation element is not available
     cartStore.addToCart(product, 1);
   }
-}
-
-// Handle image errors
-const handleImageError = (event) => {
-  console.error('Image failed to load:', event.target.src);
-  event.target.src = getImageUrl('placeholder.jpg');
-  
-  // If the local fallback fails, use inline SVG
-  event.target.onerror = function() {
-    const parent = event.target.parentNode;
-    if (parent) {
-      const svgElement = document.createElement('div');
-      svgElement.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
-          <rect width="100%" height="100%" fill="#f0f0f0"/>
-          <path d="M12 6v12M6 12h12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      `;
-      svgElement.className = 'broken-image';
-      parent.replaceChild(svgElement, event.target);
-    }
-  };
-}
-
-// Helper function to handle different image formats
-const getImageSrc = (imageUrl) => {
-  if (!imageUrl) return 'https://via.placeholder.com/300x300?text=No+Image';
-  
-  if (typeof imageUrl === 'string') {
-    // Handle base64 images
-    if (imageUrl.startsWith('base64://')) {
-      return imageUrl.replace('base64://', '');
-    }
-    // Handle temp images
-    if (imageUrl.startsWith('temp://')) {
-      return imageUrl.replace('temp://', '');
-    }
-  }
-  
-  return imageUrl;
 };
-
-const imageUrl = computed(() => {
-  if (!props.product || !props.product.image) {
-    return getImageUrl('placeholder.jpg');
-  }
-  return getImageUrl(props.product.image);
-});
-
-const imageError = ref(false);
-const defaultImage = '/images/placeholder.jpg';
-
-const productImageUrl = computed(() => {
-  if (imageError.value || !props.product.image) {
-    return defaultImage;
-  }
-  // Check if image path is a full URL or relative path
-  if (props.product.image.startsWith('http')) {
-    return props.product.image;
-  } else {
-    // If using relative paths within your project
-    return new URL(`/src/assets/${props.product.image}`, import.meta.url).href;
-  }
-});
 </script>
 
 <style scoped>
