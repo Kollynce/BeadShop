@@ -119,39 +119,33 @@ const router = createRouter({
       redirect: '/'
     }
   ],
-  strict: true // Enable strict mode for better path matching
+  strict: true, // Enable strict mode for better path matching
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0 };
+    }
+  }
 })
 
-// Prevention of query parameter recursion
-router.beforeEach((to, from, next) => {
+// Authentication and redirect handling
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
-  // Check if URL has recursive p= or q= parameters
-  const hasRecursiveParams = Object.keys(to.query).some(key => 
-    (key === 'p' && to.query[key] === '/') || key === 'q'
-  );
-  
-  // If we detect recursive parameters, clean them up
-  if (hasRecursiveParams) {
-    return next({
-      path: to.path,
-      params: to.params,
-      query: {}, // Remove all query parameters
-      hash: to.hash,
-      replace: true // Replace the current entry in history
-    });
-  }
   
   // Check authentication requirements
   if (to.meta.requiresAuth && !authStore.user) {
-    return next({ path: '/login', replace: true });
-  } 
+    next({ path: '/login', replace: true });
+    return;
+  }
   
   // Check admin requirements
   if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    return next({ path: '/', replace: true });
+    next({ path: '/', replace: true });
+    return;
   }
   
+  // All checks passed
   next();
 })
 
@@ -159,6 +153,32 @@ router.beforeEach((to, from, next) => {
 function isUserAdmin(user) {
   if (!user) return false
   return user.isAdmin === true
+}
+
+// Check for redirected route from session storage (happens after page refresh/direct URL access)
+// This must be executed after router is created but before it's exported
+if (typeof window !== 'undefined') {
+  router.afterEach(() => {
+    // Clear any recursive query parameters if they exist
+    const currentUrl = window.location.href;
+    if (currentUrl.includes('?p=/') || currentUrl.includes('&q=')) {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  });
+  
+  // Handle initial navigation based on session storage
+  router.isReady().then(() => {
+    const savedPath = sessionStorage.getItem('spaPath');
+    if (savedPath && savedPath !== '/' && window.location.pathname === '/') {
+      // We have a saved path from a refresh or direct access
+      // Remove the saved path to prevent loops
+      sessionStorage.removeItem('spaPath');
+      
+      // Navigate to the saved path
+      router.push(savedPath);
+    }
+  });
 }
 
 export default router
