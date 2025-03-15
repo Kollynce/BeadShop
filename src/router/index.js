@@ -140,44 +140,38 @@ const router = createRouter({
   }
 })
 
-// More aggressive protection against unwanted redirects to home
+// More balanced protection against unwanted redirects to home
 router.beforeEach((to, from, next) => {
   // Log all navigations for debugging
   console.log(`Navigation requested: ${from.path} → ${to.path}`);
   
-  // Block unwanted navigations to home
+  // Only block automatic redirects to home, not intentional navigation
   if (to.path === '/' && from.path !== '/' && from.name !== undefined) {
-    // Check if this navigation was recently blocked to avoid loops
-    const lastBlockTime = window.__lastHomeBlockTime || 0;
-    const now = Date.now();
+    // Check if this is a user-initiated navigation (e.g., clicking a link)
+    if (window.__navIsUserAction) {
+      // Allow user-initiated navigations to home
+      console.log('User navigation to home allowed');
+      window.__navIsUserAction = false;
+      next();
+      return;
+    }
     
-    // Only block if we haven't recently blocked (prevent infinite loops)
-    if (now - lastBlockTime > 500) {
+    // For programmatic navigations, only block if we're actively preventing redirects
+    if (window.__navigationInProgress || localStorage.getItem('preventHomeRedirect')) {
       console.log(`⛔ Blocked unexpected navigation to home from ${from.path}`);
-      window.__lastHomeBlockTime = now;
+      localStorage.removeItem('preventHomeRedirect');
       next(false);
       return;
     }
   }
   
-  // If navigation is in progress and we're trying to go home, prevent it
-  if (window.__navigationInProgress && to.path === '/' && from.path !== '/') {
-    console.log('Prevented unwanted redirect to home page during navigation');
+  // Check localStorage for navigation flag - only for initial navigation
+  if (localStorage.getItem('preventHomeRedirect') && to.path === '/' && from.name === undefined) {
+    // We're at initial load and going to home, but we don't want that
+    console.log('Initial navigation: preventing default route to home');
+    localStorage.removeItem('preventHomeRedirect');
     next(false);
     return;
-  }
-  
-  // Check localStorage for navigation flag
-  if (localStorage.getItem('preventHomeRedirect')) {
-    // Only apply this prevention once
-    localStorage.removeItem('preventHomeRedirect');
-    
-    if (to.path === '/' && from.name === undefined) {
-      // We're at initial load and going to home, but we don't want that
-      console.log('Initial navigation: preventing default route to home');
-      next(false);
-      return;
-    }
   }
   
   next();

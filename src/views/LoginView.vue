@@ -13,17 +13,24 @@ const password = ref('')
 const errorMsg = ref('')
 const loading = ref(false)
 
-const handleSubmit = async () => {
-  errorMsg.value = ''
-  loading.value = true
-  
+const handleLogin = async () => {
   try {
-    const redirectPath = await authStore.login(email.value, password.value)
-    router.push(redirectPath)
+    loading.value = true;
+    errorMsg.value = null;
+    
+    // Call login and get the redirect path
+    const redirectPath = await authStore.login({
+      email: email.value,
+      password: password.value
+    });
+    
+    // Navigate to the redirect path
+    router.push(redirectPath);
   } catch (error) {
-    errorMsg.value = error.message || 'Failed to login. Please try again.'
+    console.error('Login error:', error);
+    errorMsg.value = error.message || 'Failed to login. Please try again.';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -52,7 +59,7 @@ const handleSubmit = async () => {
           </div>
         </TransitionRoot>
         
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form @submit.prevent="handleLogin" class="space-y-6">
           <div>
             <label for="email" class="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary">Email address</label>
             <div class="mt-1 relative rounded-md shadow-sm">

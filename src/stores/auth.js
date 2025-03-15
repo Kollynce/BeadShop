@@ -18,32 +18,26 @@ export const useAuthStore = defineStore('auth', {
     error: null
   }),
   actions: {
-    // Add this method to initialize auth from localStorage on page load
+    // Add or update the initAuth method
     async initAuth() {
       console.log('Initializing auth state');
-      // If we already have a user, don't do anything
       if (this.user) return;
       
       try {
         // Try to get user data from localStorage
         const userData = localStorage.getItem('userData');
         if (userData) {
-          const parsedUser = JSON.parse(userData);
-          console.log('Found stored user data, restoring session');
-          this.user = parsedUser;
-          
-          // Optional: Verify the token with your backend
-          // await this.verifyToken();
+          this.user = JSON.parse(userData);
+          console.log('Restored auth from localStorage');
         }
       } catch (error) {
-        console.error('Error restoring auth state:', error);
-        // Clear potentially corrupt data
+        console.error('Error restoring auth:', error);
         localStorage.removeItem('userData');
         this.user = null;
       }
     },
     
-    // Make sure login saves user data to localStorage
+    // Update the login method to handle redirect
     async login(email, password) {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password)
@@ -71,13 +65,12 @@ export const useAuthStore = defineStore('auth', {
         // After successful login, store user in localStorage
         if (this.user) {
           localStorage.setItem('userData', JSON.stringify(this.user));
-        }
-        
-        // Handle redirect after login
-        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
-        if (redirectPath) {
+          
+          // Handle redirect after login
+          const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
+          console.log(`Login successful, will redirect to: ${redirectPath}`);
           sessionStorage.removeItem('redirectAfterLogin');
-          return redirectPath; // Return the path to redirect to
+          return redirectPath;
         }
         
         return '/account'; // Default redirect
