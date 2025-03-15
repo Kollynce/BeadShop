@@ -9,5 +9,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       'vue': 'vue/dist/vue.esm-bundler.js'
     }
-  }
+  },
+  assetsInclude: ['**/*.PNG', '**/*.png']  // Add this line to include PNG files as assets
 })
