@@ -10,5 +10,6 @@ export default defineConfig({
       'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
-  assetsInclude: ['**/*.PNG', '**/*.png']  // Add this line to include PNG files as assets
+  base: '/Jewelry/', // Add this line with your repository name
+  assetsInclude: ['**/*.PNG', '**/*.png']
 })
