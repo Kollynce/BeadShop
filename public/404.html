@@ -2,27 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>BeadShop - Page Not Found</title>
+  <title>Kreative Kanvas - Page Not Found</title>
   <script>
-    // Redirect all 404s to the index page with the original path as a query parameter
-    // This handles GitHub Pages SPA routing
-    const pathSegmentsToKeep = 1;
-    const l = window.location;
-    
-    // Get the repository name from the current path
-    const repoName = l.pathname.split('/')[1];
-    
-    // Reconstruct the URL for proper SPA routing
-    const redirectUrl = 
-      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-      '/' + repoName + '/?p=/' +
-      l.pathname.slice(('/' + repoName + '/').length) +
-      (l.search ? '&q=' + l.search.slice(1) : '') +
-      l.hash;
+    // SPA routing handler that prevents parameter recursion
+    (function() {
+      // Get current location
+      const location = window.location;
       
-    window.location.replace(redirectUrl);
+      // Check if we already have recursive parameters to prevent loops
+      if (location.search && (location.search.includes('p=/') || location.search.includes('&q='))) {
+        // We already have the problematic parameters, redirect to clean URL
+        window.location.replace(location.origin + '/');
+        return;
+      }
+      
+      // Regular SPA handling - redirect to index with clean parameters
+      const pathname = location.pathname.replace(/^\/+/, '');
+      
+      // Create a clean redirect URL without recursive parameters
+      const redirectUrl = location.origin + '/#' + pathname + location.search + location.hash;
+      
+      window.location.replace(redirectUrl);
+    })();
   </script>
-  <meta http-equiv="refresh" content="0;URL='/BeadShop/'">
+  <meta http-equiv="refresh" content="0;URL='/'">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -54,6 +57,6 @@
 <body>
   <h1>Page Not Found</h1>
   <p>Redirecting to the homepage...</p>
-  <p>If you're not redirected automatically, <a href="/BeadShop/">click here</a>.</p>
+  <p>If you're not redirected automatically, <a href="/">click here</a>.</p>
 </body>
 </html>

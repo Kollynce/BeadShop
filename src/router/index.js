@@ -111,44 +111,48 @@ const router = createRouter({
       component: AdminUsersView,
       meta: { requiresAuth: true, isAdmin: true },
       beforeEnter: requireAdmin
+    },
+    // Catch-all route - must be last
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      redirect: '/'
     }
   ],
   strict: true // Enable strict mode for better path matching
 })
 
-// Simplified catch-all route
-router.addRoute({
-  path: '/:pathMatch(.*)*',
-  name: 'not-found',
-  redirect: () => {
-    return { path: '/', replace: true, query: {} }
-  }
-})
-
-// Navigation guard to clean up query parameters on direct page loads
-router.beforeEach(async (to, from, next) => {
+// Prevention of query parameter recursion
+router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
-  // Identify problematic query parameters
-  if (to.query.p === '/' || to.query.q) {
-    // This is likely a page reload with problematic query params
-    // Redirect to the same route but with clean query params
-    return next({ 
-      path: to.path, 
-      query: {}, // Remove all query params
-      replace: true // Replace current history entry
+  // Check if URL has recursive p= or q= parameters
+  const hasRecursiveParams = Object.keys(to.query).some(key => 
+    (key === 'p' && to.query[key] === '/') || key === 'q'
+  );
+  
+  // If we detect recursive parameters, clean them up
+  if (hasRecursiveParams) {
+    return next({
+      path: to.path,
+      params: to.params,
+      query: {}, // Remove all query parameters
+      hash: to.hash,
+      replace: true // Replace the current entry in history
     });
   }
-
+  
+  // Check authentication requirements
   if (to.meta.requiresAuth && !authStore.user) {
-    // Redirect to login with clean redirect
-    next({ path: '/login', replace: true, query: {} })
-  } else if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    // Redirect non-admin users to home
-    next({ path: '/', replace: true, query: {} })
-  } else {
-    next()
+    return next({ path: '/login', replace: true });
+  } 
+  
+  // Check admin requirements
+  if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
+    return next({ path: '/', replace: true });
   }
+  
+  next();
 })
 
 // Helper function to check if user is an admin
