@@ -62,6 +62,55 @@ const handleSpaNavigation = () => {
 // Wait for router to be ready before mounting
 router.isReady().then(() => {
   console.log('Router ready, mounting app');
+  
+  // Add global error handler to prevent API errors from causing redirects
+  window.addEventListener('error', function(event) {
+    // Check if this is a script error (like Google Maps)
+    if (event.target && event.target.tagName === 'SCRIPT') {
+      console.log('Caught script error, preventing default behavior');
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+  
+  // Patch the router to prevent programmatic navigations to home
+  const originalPush = router.push;
+  const originalReplace = router.replace;
+  
+  router.push = function(location, onComplete, onAbort) {
+    if (typeof location === 'string' && location === '/') {
+      console.log('⚠️ Caught programmatic navigation to home page, checking stack trace');
+      console.trace('Navigation stack trace');
+      
+      // Allow navigation if it's explicitly intended
+      if (window.__allowHomeNavigation) {
+        window.__allowHomeNavigation = false;
+        return originalPush.call(this, location, onComplete, onAbort);
+      }
+      
+      console.log('⛔ Blocked programmatic navigation to home');
+      return Promise.resolve(false);
+    }
+    return originalPush.call(this, location, onComplete, onAbort);
+  };
+  
+  router.replace = function(location, onComplete, onAbort) {
+    if (typeof location === 'string' && location === '/') {
+      console.log('⚠️ Caught programmatic replace to home page, checking stack trace');
+      console.trace('Navigation stack trace');
+      
+      // Allow navigation if it's explicitly intended
+      if (window.__allowHomeNavigation) {
+        window.__allowHomeNavigation = false;
+        return originalReplace.call(this, location, onComplete, onAbort);
+      }
+      
+      console.log('⛔ Blocked programmatic replace to home');
+      return Promise.resolve(false);
+    }
+    return originalReplace.call(this, location, onComplete, onAbort);
+  };
+  
   app.mount('#app');
   
   // Handle SPA navigation after app mount

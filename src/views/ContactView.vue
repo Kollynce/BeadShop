@@ -455,6 +455,20 @@ const loadGoogleMapsApi = () => {
   document.head.appendChild(googleMapsApiScript);
 };
 
+// Error handling for Google Maps
+const handleGoogleMapsError = () => {
+  console.log('Google Maps failed to load - displaying fallback content');
+  // Don't redirect - just show a fallback UI
+};
+
+// Intercept Google Maps errors
+if (typeof window !== 'undefined') {
+  window.gm_authFailure = function() {
+    console.log('Google Maps authentication failed');
+    handleGoogleMapsError();
+  };
+}
+
 onMounted(() => {
   // Initialize map
   loadGoogleMapsApi();

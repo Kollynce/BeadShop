@@ -140,11 +140,29 @@ const router = createRouter({
   }
 })
 
-// Prevent unwanted redirects to home
+// More aggressive protection against unwanted redirects to home
 router.beforeEach((to, from, next) => {
+  // Log all navigations for debugging
+  console.log(`Navigation requested: ${from.path} → ${to.path}`);
+  
+  // Block unwanted navigations to home
+  if (to.path === '/' && from.path !== '/' && from.name !== undefined) {
+    // Check if this navigation was recently blocked to avoid loops
+    const lastBlockTime = window.__lastHomeBlockTime || 0;
+    const now = Date.now();
+    
+    // Only block if we haven't recently blocked (prevent infinite loops)
+    if (now - lastBlockTime > 500) {
+      console.log(`⛔ Blocked unexpected navigation to home from ${from.path}`);
+      window.__lastHomeBlockTime = now;
+      next(false);
+      return;
+    }
+  }
+  
   // If navigation is in progress and we're trying to go home, prevent it
   if (window.__navigationInProgress && to.path === '/' && from.path !== '/') {
-    console.log('Prevented unwanted redirect to home page');
+    console.log('Prevented unwanted redirect to home page during navigation');
     next(false);
     return;
   }
@@ -194,6 +212,16 @@ router.beforeEach(async (to, from, next) => {
 function isUserAdmin(user) {
   if (!user) return false
   return user.isAdmin === true
+}
+
+// Fix the catch-all route
+const catchAllRoute = router.options.routes.find(r => r.path === '/:pathMatch(.*)*');
+if (catchAllRoute) {
+  catchAllRoute.beforeEnter = (to, from, next) => {
+    console.log(`Not-found route triggered for: ${to.fullPath}`);
+    // Just display the 404 component without redirecting
+    next();
+  };
 }
 
 export default router
