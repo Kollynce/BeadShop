@@ -39,10 +39,10 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, computed } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { formatCurrency } from '@/utils/currency';
-import { getImageUrl } from '../utils/imageUtils';
+import { getImageUrl } from '@/utils/imageLoader';
 
 // Update component props to accept processImageUrl function
 defineProps({
@@ -111,7 +111,7 @@ const addToCart = async (product) => {
 // Handle image errors
 const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
-  event.target.src = '/images/no-image.jpg';
+  event.target.src = getImageUrl('placeholder.jpg');
   
   // If the local fallback fails, use inline SVG
   event.target.onerror = function() {
@@ -148,7 +148,7 @@ const getImageSrc = (imageUrl) => {
   return imageUrl;
 };
 
-const imageUrl = computed(() => getImageUrl(product.image || 'images/no-image.jpg'));
+const imageUrl = computed(() => getImageUrl(product.image || 'placeholder.jpg'));
 </script>
 
 <style scoped>

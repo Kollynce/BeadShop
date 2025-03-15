@@ -375,6 +375,7 @@ import { firebaseService } from '../services/firebaseService'
 import { formatCurrency } from '@/utils/currency'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels, TransitionRoot, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { CheckIcon, XMarkIcon, PencilIcon, ShoppingBagIcon, CalendarIcon, ChevronRightIcon, PhotoIcon } from '@heroicons/vue/24/outline'
+import { getImageUrl } from '../utils/imageLoader'
 
 const authStore = useAuthStore()
 const userProfile = ref(null)
@@ -544,7 +545,7 @@ const getTransitionClasses = (delay = 0) => {
 
 // Process image URLs to handle errors - matching ProductCard.vue implementation
 const processImageUrl = (url) => {
-  if (!url) return '/images/no-image.jpg';
+  if (!url) return getImageUrl('placeholder.jpg');
 
   // Handle different image formats
   if (typeof url === 'string') {
@@ -564,7 +565,7 @@ const processImageUrl = (url) => {
 // Handle image loading errors - matching ProductCard.vue implementation
 const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
-  event.target.src = '/images/no-image.jpg';
+  event.target.src = getImageUrl('placeholder.jpg');
 
   // If the local fallback fails, use inline SVG
   event.target.onerror = function () {

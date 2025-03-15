@@ -5,7 +5,7 @@
       v-if="animatingItem" 
       class="cart-animation fixed pointer-events-none z-50" 
       ref="cartAnimationEl"
-      :style="{ backgroundImage: `url(${animatingItem?.image || animatingItem?.imageUrl || '/images/no-image.jpg'})` }">
+      :style="{ backgroundImage: `url(${animatingItem?.image || animatingItem?.imageUrl || getImageUrl('placeholder.jpg')})` }">
     </div>
     
     <!-- Hero Section -->
@@ -341,6 +341,7 @@ import { useCartStore } from '@/stores/cart'
 import { mockDataLoader } from '../utils/mockDataLoader'
 import ProductCard from '@/components/ProductCard.vue'
 import { formatCurrency } from '@/utils/currency'
+import { getImageUrl } from '@/utils/imageLoader'
 
 // Update utility function to process image URLs
 const processImageUrl = (url) => {
@@ -363,7 +364,7 @@ const processImageUrl = (url) => {
 // Function to handle image errors
 const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
-  event.target.src = '/images/no-image.jpg';
+  event.target.src = getImageUrl('placeholder.jpg');
   
   // If the local fallback fails, use inline SVG
   event.target.onerror = function() {

@@ -27,7 +27,7 @@
         <!-- Main product image with hover zoom effect -->
         <div class="product-image-container relative overflow-hidden rounded-lg shadow-md border border-light-neutral-100 dark:border-dark-neutral-700 mb-4 aspect-square bg-light-secondary dark:bg-dark-secondary">
           <img
-            :src="processImageUrl(product.images[selectedImageIndex]?.main) || processImageUrl(product.imageUrl) || processImageUrl(product.image) || '/images/no-image.jpg'"
+            :src="processImageUrl(product.images[selectedImageIndex]?.main) || processImageUrl(product.imageUrl) || processImageUrl(product.image) || getImageUrl('placeholder.jpg')"
             :alt="product.name"
             class="product-image w-full h-full object-contain rounded-lg"
             @error="handleImageError"
@@ -54,7 +54,7 @@
             ]"
           >
             <img
-              :src="processImageUrl(image.thumb) || processImageUrl(image.main) || '/images/no-image.jpg'"
+              :src="processImageUrl(image.thumb) || processImageUrl(image.main) || getImageUrl('placeholder.jpg')"
               :alt="`Thumbnail ${index + 1}`"
               class="w-full h-full object-cover"
               @error="handleImageError"
@@ -208,6 +208,7 @@ import { firebaseService } from '../services/firebaseService'
 import { useCartStore } from '../stores/cart'
 import { mockDataLoader } from '../utils/mockDataLoader'
 import { formatCurrency } from '@/utils/currency'
+import { getImageUrl } from '@/utils/imageLoader';
 
 const route = useRoute()
 const router = useRouter()
@@ -268,7 +269,7 @@ const fetchProduct = async () => {
     console.log("Product loaded:", product.value)
     
     // Use local default image instead of relying on external placeholder service
-    const defaultImage = '/images/no-image.jpg';
+    const defaultImage = getImageUrl('placeholder.jpg');
     const productImage = processImageUrl(product.value.imageUrl || product.value.image) || defaultImage;
     console.log("Product image source:", productImage);
     
@@ -394,7 +395,7 @@ const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
   
   // Use a locally hosted fallback image instead of an external service
-  event.target.src = '/images/no-image.jpg';
+  event.target.src = getImageUrl('placeholder.jpg');
   
   // If local fallback fails, use inline SVG as final fallback
   event.target.onerror = function() {
