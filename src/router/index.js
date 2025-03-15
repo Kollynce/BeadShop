@@ -155,56 +155,36 @@ function isUserAdmin(user) {
   return user.isAdmin === true
 }
 
-// Save current route to localStorage when navigating
-router.afterEach((to) => {
-  // Only save the path if we're not in a restoration process
-  const isRestoringNavigation = sessionStorage.getItem('restoringNavigation') === 'true';
-  
-  if (!isRestoringNavigation) {
-    if (to.path !== '/') {
-      localStorage.setItem('spaNavPath', to.path);
-      localStorage.setItem('spaNavSearch', to.fullPath.includes('?') ? to.fullPath.substring(to.fullPath.indexOf('?')) : '');
-      localStorage.setItem('spaNavHash', to.hash || '');
-    } else {
-      // If we're navigating to home explicitly (not during restoration),
-      // clear the saved navigation state
-      localStorage.removeItem('spaNavPath');
-      localStorage.removeItem('spaNavSearch');
-      localStorage.removeItem('spaNavHash');
-    }
-  }
-  
-  // Clean any recursive query parameters if they exist
-  if (typeof window !== 'undefined') {
-    const currentUrl = window.location.href;
-    if (currentUrl.includes('?p=/') || currentUrl.includes('&q=')) {
-      const cleanUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
-    }
-  }
-  
-  // Reset the restoration flag
-  sessionStorage.removeItem('restoringNavigation');
-});
-
-// Handle initial routing based on localStorage
-// This must be executed after router is created but before it's exported
+// Handle initial SPA navigation
 if (typeof window !== 'undefined') {
+  // Initialize router with proper SPA navigation handling
   router.isReady().then(() => {
-    const savedPath = localStorage.getItem('spaNavPath');
-    const savedSearch = localStorage.getItem('spaNavSearch') || '';
-    const savedHash = localStorage.getItem('spaNavHash') || '';
+    const timestamp = sessionStorage.getItem('spaNavTimestamp');
+    const savedPath = sessionStorage.getItem('spaPath');
+    const savedSearch = sessionStorage.getItem('spaSearch') || '';
+    const savedHash = sessionStorage.getItem('spaHash') || '';
     
-    if (savedPath && savedPath !== '/' && window.location.pathname === '/') {
-      // Set a flag to indicate we're restoring navigation
-      sessionStorage.setItem('restoringNavigation', 'true');
+    // Only process saved navigation if we're at the root and have saved data
+    if (window.location.pathname === '/' && savedPath) {
+      // Check if the saved navigation is recent (within last 5 seconds)
+      const isRecent = timestamp && (Date.now() - parseInt(timestamp)) < 5000;
       
-      // We have a saved path from a refresh or direct access
-      // Construct the full path with query params and hash if available
-      const fullPath = savedPath + savedSearch + savedHash;
-      
-      // Navigate to the saved path
-      router.push(fullPath);
+      if (isRecent) {
+        // Clear the navigation data first to prevent loops
+        sessionStorage.removeItem('spaPath');
+        sessionStorage.removeItem('spaSearch');
+        sessionStorage.removeItem('spaHash');
+        sessionStorage.removeItem('spaNavTimestamp');
+        
+        // Reconstruct the full path
+        const fullPath = savedPath + savedSearch + savedHash;
+        
+        // Use replace to avoid adding to history
+        router.replace(fullPath).catch(err => {
+          console.error('Navigation error:', err);
+          // If navigation fails, stay on current page
+        });
+      }
     }
   });
 }
