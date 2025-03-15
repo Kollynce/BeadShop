@@ -4,21 +4,40 @@
   <meta charset="utf-8">
   <title>Page Not Found</title>
   <script>
-    // Single Page Application (SPA) routing handler
-    // This script ensures proper routing when a user directly accesses a URL or refreshes a page
+    // SPA routing handler for GitHub Pages and other static hosts
     (function() {
-      // Extract the path from the URL
-      const path = window.location.pathname;
-      const search = window.location.search;
-      const hash = window.location.hash;
+      // Set this to true to see debug messages in console
+      const DEBUG = false;
       
-      // Store the complete URL info in localStorage so our app can use it
-      localStorage.setItem('spaNavPath', path);
-      localStorage.setItem('spaNavSearch', search);
-      localStorage.setItem('spaNavHash', hash);
+      function log(message) {
+        if (DEBUG) console.log('[SPA Router]', message);
+      }
       
-      // Redirect to the root without adding query parameters
-      window.location.replace(window.location.origin);
+      try {
+        // Extract the path from the URL
+        const path = window.location.pathname;
+        const search = window.location.search || '';
+        const hash = window.location.hash || '';
+        
+        log(`Handling navigation to: ${path}${search}${hash}`);
+        
+        // Store the route in session storage (more reliable for navigation)
+        sessionStorage.setItem('spaPath', path);
+        sessionStorage.setItem('spaSearch', search);
+        sessionStorage.setItem('spaHash', hash);
+        
+        // Set a timestamp to help prevent stale redirects
+        sessionStorage.setItem('spaNavTimestamp', Date.now().toString());
+        
+        log('Route information saved to session storage');
+        
+        // Redirect to the root without adding query parameters
+        window.location.replace(window.location.origin);
+      } catch (error) {
+        console.error('[SPA Router] Navigation error:', error);
+        // Fallback to homepage on error
+        window.location.replace(window.location.origin);
+      }
     })();
   </script>
   <style>
@@ -52,5 +71,8 @@
 <body>
   <h1>Redirecting...</h1>
   <p>Please wait while you are redirected to the requested page.</p>
+  <noscript>
+    <p>JavaScript is required for navigation. Please <a href="/">return to the homepage</a>.</p>
+  </noscript>
 </body>
 </html>
