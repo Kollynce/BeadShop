@@ -155,28 +155,40 @@ function isUserAdmin(user) {
   return user.isAdmin === true
 }
 
-// Check for redirected route from session storage (happens after page refresh/direct URL access)
-// This must be executed after router is created but before it's exported
-if (typeof window !== 'undefined') {
-  router.afterEach(() => {
-    // Clear any recursive query parameters if they exist
+// Save current route to localStorage when navigating
+router.afterEach((to) => {
+  // Don't save the home page route
+  if (to.path !== '/') {
+    localStorage.setItem('spaNavPath', to.path);
+    localStorage.setItem('spaNavSearch', to.fullPath.includes('?') ? to.fullPath.substring(to.fullPath.indexOf('?')) : '');
+    localStorage.setItem('spaNavHash', to.hash || '');
+  }
+  
+  // Clean any recursive query parameters if they exist
+  if (typeof window !== 'undefined') {
     const currentUrl = window.location.href;
     if (currentUrl.includes('?p=/') || currentUrl.includes('&q=')) {
       const cleanUrl = window.location.pathname;
       window.history.replaceState({}, document.title, cleanUrl);
     }
-  });
-  
-  // Handle initial navigation based on session storage
+  }
+});
+
+// Handle initial routing based on localStorage
+// This must be executed after router is created but before it's exported
+if (typeof window !== 'undefined') {
   router.isReady().then(() => {
-    const savedPath = sessionStorage.getItem('spaPath');
+    const savedPath = localStorage.getItem('spaNavPath');
+    const savedSearch = localStorage.getItem('spaNavSearch') || '';
+    const savedHash = localStorage.getItem('spaNavHash') || '';
+    
     if (savedPath && savedPath !== '/' && window.location.pathname === '/') {
       // We have a saved path from a refresh or direct access
-      // Remove the saved path to prevent loops
-      sessionStorage.removeItem('spaPath');
+      // Construct the full path with query params and hash if available
+      const fullPath = savedPath + savedSearch + savedHash;
       
       // Navigate to the saved path
-      router.push(savedPath);
+      router.push(fullPath);
     }
   });
 }
