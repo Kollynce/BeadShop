@@ -17,6 +17,8 @@ import {
 } from 'firebase/firestore'
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { mockDataLoader } from '../utils/mockDataLoader'
+import { DEFAULT_ADMIN } from '../config/defaultAdmin'
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -36,21 +38,98 @@ export const firebaseService = {
   // User profile operations
   async createUserProfile(userId, userData) {
     const userRef = doc(db, 'users', userId)
-    await setDoc(userRef, {
+    // Ensure isAdmin is explicitly set as boolean
+    const userDataWithAdmin = {
       ...userData,
-      createdAt: new Date()
-    })
+      isAdmin: Boolean(userData.isAdmin || false),
+      createdAt: serverTimestamp(),
+      adminUpdatedAt: serverTimestamp()
+    };
+    await setDoc(userRef, userDataWithAdmin);
+    console.log('Created user profile with admin status:', userDataWithAdmin.isAdmin);
   },
 
   async getUserProfile(userId) {
-    const userRef = doc(db, 'users', userId)
-    const userSnap = await getDoc(userRef)
-    return userSnap.exists() ? userSnap.data() : null
+    try {
+      const userRef = doc(db, 'users', userId)
+      const userSnap = await getDoc(userRef)
+      
+      // Check if user is default admin
+      const adminRef = doc(db, 'users', 'default-admin')
+      const adminSnap = await getDoc(adminRef)
+      
+      if (adminSnap.exists() && adminSnap.data().uid === userId) {
+        return {
+          ...adminSnap.data(),
+          id: userId,
+          isAdmin: true,
+          isSuperAdmin: true
+        }
+      }
+      
+      if (!userSnap.exists()) {
+        // Check localStorage for admin status as fallback
+        const isStoredAdmin = localStorage.getItem('userIsAdmin') === 'true'
+        console.log('No user profile found, using stored admin status:', isStoredAdmin)
+        
+        // Create profile if it doesn't exist and user was previously admin
+        if (isStoredAdmin) {
+          await this.createUserProfile(userId, { isAdmin: true })
+          return { id: userId, isAdmin: true }
+        }
+        return null
+      }
+      
+      const userData = userSnap.data()
+      userData.isAdmin = Boolean(userData.isAdmin)
+      
+      // Sync with localStorage
+      if (userData.isAdmin) {
+        localStorage.setItem('userIsAdmin', 'true')
+      }
+      
+      return {
+        id: userId,
+        ...userData,
+        isAdmin: userData.isAdmin
+      }
+    } catch (error) {
+      console.error('Error getting user profile:', error)
+      // Fallback to stored admin status
+      const isStoredAdmin = localStorage.getItem('userIsAdmin') === 'true'
+      return { id: userId, isAdmin: isStoredAdmin }
+    }
   },
 
   async updateUserProfile(userId, userData) {
     const userRef = doc(db, 'users', userId)
     await setDoc(userRef, userData, { merge: true })
+  },
+
+  // Add a new method to set admin status
+  async setUserAdminStatus(userId, isAdmin) {
+    try {
+      const adminRef = doc(db, 'users', 'default-admin')
+      const adminSnap = await getDoc(adminRef)
+      
+      // Prevent removing admin status from super admin
+      if (adminSnap.exists() && adminSnap.data().uid === userId) {
+        console.warn('Cannot modify super admin status')
+        return false
+      }
+      
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        isAdmin: Boolean(isAdmin),
+        updatedAt: serverTimestamp(),
+        adminUpdatedAt: serverTimestamp() // Track when admin status was last changed
+      });
+      console.log(`Updated admin status for user ${userId} to:`, isAdmin);
+      return true;
+    } catch (error) {
+      console.error('Error updating admin status:', error);
+      throw error;
+    }
   },
 
   // Product operations
@@ -571,6 +650,63 @@ export const firebaseService = {
   async getDocuments(collectionRef) {
     return await getDocs(collectionRef);
   },
+
+  // Add new method to seed default admin
+  async seedDefaultAdmin() {
+    try {
+      const auth = getAuth()
+      
+      // Check if default admin exists
+      const adminRef = doc(db, 'users', 'default-admin')
+      const adminSnap = await getDoc(adminRef)
+
+      if (!adminSnap.exists()) {
+        // Create auth account for admin
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            DEFAULT_ADMIN.email,
+            DEFAULT_ADMIN.password
+          )
+          
+          // Create admin profile
+          await setDoc(adminRef, {
+            ...DEFAULT_ADMIN.userData,
+            uid: userCredential.user.uid,
+            email: DEFAULT_ADMIN.email,
+            adminCreatedAt: serverTimestamp()
+          })
+          
+          console.log('Default admin account created successfully')
+        } catch (authError) {
+          // If account already exists, just ensure the profile exists
+          if (authError.code === 'auth/email-already-in-use') {
+            const { user } = await signInWithEmailAndPassword(
+              auth,
+              DEFAULT_ADMIN.email,
+              DEFAULT_ADMIN.password
+            )
+            
+            await setDoc(adminRef, {
+              ...DEFAULT_ADMIN.userData,
+              uid: user.uid,
+              email: DEFAULT_ADMIN.email,
+              adminCreatedAt: serverTimestamp()
+            }, { merge: true })
+            
+            console.log('Default admin profile updated')
+          } else {
+            throw authError
+          }
+        }
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error seeding default admin:', error)
+      throw error
+    }
+  }
 }
 
 export default app

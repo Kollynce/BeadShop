@@ -38,6 +38,7 @@
                     <div class="-m-2 block p-2 font-medium text-light-text-primary dark:text-dark-text-primary">{{ authStore.user.displayName || authStore.user.email }}</div>
                     <RouterLink to="/account" class="-m-2 block p-2 text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-light-text-primary dark:hover:text-dark-text-primary pl-4" @click="closeMobileMenu">Account</RouterLink>
                     <RouterLink v-if="isAdmin" to="/admin" class="-m-2 block p-2 text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-light-text-primary dark:hover:text-dark-text-primary pl-4" @click="closeMobileMenu">Shop Manager</RouterLink>
+                    <RouterLink v-if="isAdmin" to="/admin/users" class="-m-2 block p-2 text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-light-text-primary dark:hover:text-dark-text-primary pl-4" @click="closeMobileMenu">User Manager</RouterLink>
                     <button @click="logout" class="-m-2 block p-2 text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-light-text-primary dark:hover:text-dark-text-primary pl-4 w-full text-left">Logout</button>
                   </div>
                 </div>
@@ -108,6 +109,13 @@
                   :class="{ 'border-orange-500 dark:border-orange-500 text-light-text-primary dark:text-dark-text-primary': isCurrentRoute('/contact') }" 
                   active-class="border-orange-500 dark:border-orange-500 text-light-text-primary dark:text-dark-text-primary"
                 >Contact</RouterLink>
+                <RouterLink 
+                  v-if="isAdmin" 
+                  to="/admin/users" 
+                  class="flex items-center text-sm font-medium transition-colors duration-200 border-b-2 border-transparent hover:border-accent-primary dark:hover:border-accent-primary py-2 text-light-text-primary dark:text-dark-neutral-700 hover:text-light-text-primary dark:hover:text-dark-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md" 
+                  :class="{ 'border-orange-500 dark:border-orange-500 text-light-text-primary dark:text-dark-text-primary': isCurrentRoute('/admin/users') }" 
+                  active-class="border-orange-500 dark:border-orange-500 text-light-text-primary dark:text-dark-text-primary"
+                >User Manager</RouterLink>
               </div>
             </div>
 
@@ -140,6 +148,9 @@
                       </MenuItem>
                       <MenuItem v-if="isAdmin" v-slot="{ active }">
                         <RouterLink to="/admin" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Shop Manager</RouterLink>
+                      </MenuItem>
+                      <MenuItem v-if="isAdmin" v-slot="{ active }">
+                        <RouterLink to="/admin/users" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">User Manager</RouterLink>
                       </MenuItem>
                       <MenuItem v-slot="{ active }">
                         <button @click="logout" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block w-full text-left px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Logout</button>

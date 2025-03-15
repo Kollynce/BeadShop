@@ -340,7 +340,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive, nextTick, h } from 'vue';
+import { ref, computed, onMounted, reactive, nextTick, h, defineComponent } from 'vue';
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue';
 import { firebaseService } from '../services/firebaseService';
 import { getAuth } from 'firebase/auth';
@@ -363,9 +363,12 @@ import {
   ChevronUpDownIcon,
   ArrowPathIcon,
   FaceFrownIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ChartBarIcon,
+  PencilIcon
 } from '@heroicons/vue/24/outline';
-import { PencilIcon } from '@heroicons/vue/24/solid';
+
+// Remove PencilIcon from here since it's already imported above
 
 const users = ref([]);
 
@@ -505,7 +508,7 @@ const adminCount = computed(() => {
 });
 
 // Sort indicator component for table headers
-const SortIndicator = {
+const SortIndicator = defineComponent({
   props: {
     active: Boolean,
     direction: String
@@ -522,7 +525,7 @@ const SortIndicator = {
       );
     };
   }
-};
+});
 
 // Filtered and sorted users
 const filteredUsers = computed(() => {
@@ -732,6 +735,13 @@ const bulkChangeRole = async () => {
   } catch (error) {
     console.error('Failed to update users:', error);
   }
+};
+
+// Fix the viewUserActivity function that's used in template but not defined
+const viewUserActivity = (user) => {
+  // Placeholder function - implement as needed
+  console.log('View activity for user:', user.id);
+  showToast('User activity feature coming soon');
 };
 </script>
 

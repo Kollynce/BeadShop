@@ -413,10 +413,27 @@ const handleBulkAction = () => {
 
 onMounted(async () => {
   if (!authStore.user) {
+    console.log('No user found, redirecting to login');
     router.push('/login');
     return;
   }
+  
+  // Check if user is admin
+  if (!authStore.user.isAdmin) {
+    console.log('User is not admin, redirecting to home');
+    router.push('/');
+    return;
+  }
+  
+  console.log('Admin user confirmed:', authStore.user);
   await fetchDashboardStats();
+});
+
+// Add this computed property
+const isAdmin = computed(() => {
+  const adminStatus = Boolean(authStore.user?.isAdmin);
+  console.log('Current admin status:', adminStatus);
+  return adminStatus;
 });
 </script>
 

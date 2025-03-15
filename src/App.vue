@@ -15,17 +15,38 @@ import { onMounted } from 'vue'
 import { useThemeStore } from './stores/theme'
 import TheHeader from './components/layout/TheHeader.vue'
 import TheFooter from './components/layout/TheFooter.vue'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { useAuthStore } from './stores/auth'
+import { firebaseService } from './services/firebaseService'
 
 const themeStore = useThemeStore()
+const auth = getAuth()
+const authStore = useAuthStore()
 
 // Make sure theme is applied right away
-onMounted(() => {
+onMounted(async () => {
   // Re-apply theme to ensure it's properly set after hydration
   if (themeStore.theme === 'dark') {
     document.documentElement.classList.add('dark')
   } else {
     document.documentElement.classList.remove('dark')
   }
+
+  try {
+    // Seed default admin on app startup
+    await firebaseService.seedDefaultAdmin()
+  } catch (error) {
+    console.error('Failed to seed default admin:', error)
+  }
+
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      // Restore the session including admin status
+      await authStore.restoreSession(firebaseUser)
+    } else {
+      authStore.logout()
+    }
+  })
 })
 </script>
 
