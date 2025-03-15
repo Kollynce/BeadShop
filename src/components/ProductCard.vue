@@ -10,8 +10,12 @@
     
     <router-link :to="`/product/${product.id}`" class="cursor-pointer block">
       <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg">
-        <img :src="processImageUrl(product.imageUrl || product.image)" :alt="product.name"
-            class="h-60 w-full object-cover object-center group-hover:opacity-90" @error="handleImageError">
+        <img 
+          :src="imageUrl" 
+          :alt="product.name"
+          v-img-fallback
+          class="h-60 w-full object-cover object-center group-hover:opacity-90" 
+          @error="handleImageError">
       </div>
       <div class="p-4">
         <div class="items-start">
@@ -38,6 +42,7 @@
 import { ref, nextTick } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { formatCurrency } from '@/utils/currency';
+import { getImageUrl } from '../utils/imageUtils';
 
 // Update component props to accept processImageUrl function
 defineProps({
@@ -142,6 +147,8 @@ const getImageSrc = (imageUrl) => {
   
   return imageUrl;
 };
+
+const imageUrl = computed(() => getImageUrl(product.image || 'images/no-image.jpg'));
 </script>
 
 <style scoped>
