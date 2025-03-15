@@ -155,6 +155,25 @@ function isUserAdmin(user) {
   return user.isAdmin === true
 }
 
+// Handle initial SPA navigation - modified for better reliability
+router.beforeResolve((to, from, next) => {
+  // Check if this is initial navigation and we have a saved path
+  if (from.name === undefined && window.__spaNavigateTo) {
+    const path = window.__spaNavigateTo;
+    // Clear the global variable to prevent reuse
+    window.__spaNavigateTo = null;
+    console.log(`SPA navigation: Navigating to ${path}`);
+    
+    // Only change route if we're not already going to the saved path
+    if (to.fullPath !== path) {
+      next(path);
+      return;
+    }
+  }
+  
+  next();
+});
+
 // Handle initial SPA navigation
 if (typeof window !== 'undefined') {
   // Initialize router with proper SPA navigation handling

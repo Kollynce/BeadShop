@@ -7,7 +7,7 @@
     // SPA routing handler for GitHub Pages and other static hosts
     (function() {
       // Set this to true to see debug messages in console
-      const DEBUG = false;
+      const DEBUG = true;
       
       function log(message) {
         if (DEBUG) console.log('[SPA Router]', message);
@@ -26,10 +26,11 @@
         sessionStorage.setItem('spaSearch', search);
         sessionStorage.setItem('spaHash', hash);
         
-        // Set a timestamp to help prevent stale redirects
+        // Set a timestamp with a longer validity period (60 seconds)
         sessionStorage.setItem('spaNavTimestamp', Date.now().toString());
         
         log('Route information saved to session storage');
+        log(`Redirecting to: ${window.location.origin}`);
         
         // Redirect to the root without adding query parameters
         window.location.replace(window.location.origin);
