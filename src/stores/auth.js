@@ -11,147 +11,163 @@ import { firebaseService } from '../services/firebaseService'
 import router from '../router'
 import { adminSetup } from '../utils/adminSetup'
 
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null)
-  const loading = ref(true)
-  const error = ref(null)
-
-  // Add explicit isAdmin computed property
-  const isAdmin = computed(() => {
-    console.log('Checking isAdmin:', user.value?.isAdmin)
-    return Boolean(user.value?.isAdmin)
-  })
-
-  const isAuthenticated = computed(() => !!user.value)
-
-  async function setUser(userData) {
-    if (userData) {
-      // Get the complete user profile including admin status
-      const userProfile = await firebaseService.getUserProfile(userData.uid)
-      console.log('User profile loaded:', userProfile)
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    user: null,
+    loading: true,
+    error: null
+  }),
+  actions: {
+    // Add this method to initialize auth from localStorage on page load
+    async initAuth() {
+      console.log('Initializing auth state');
+      // If we already have a user, don't do anything
+      if (this.user) return;
       
-      user.value = {
-        ...userData,
-        isAdmin: Boolean(userProfile?.isAdmin),
-        ...userProfile
+      try {
+        // Try to get user data from localStorage
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          console.log('Found stored user data, restoring session');
+          this.user = parsedUser;
+          
+          // Optional: Verify the token with your backend
+          // await this.verifyToken();
+        }
+      } catch (error) {
+        console.error('Error restoring auth state:', error);
+        // Clear potentially corrupt data
+        localStorage.removeItem('userData');
+        this.user = null;
       }
-      console.log('Updated user state:', user.value)
-    } else {
-      user.value = null
-    }
-  }
+    },
+    
+    // Make sure login saves user data to localStorage
+    async login(email, password) {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password)
+        const userData = await firebaseService.getUserProfile(userCredential.user.uid)
+        
+        // Initialize admin status if needed
+        if (!userData?.adminUpdatedAt) {
+          await adminSetup.initializeAdminStatus()
+        }
+        
+        // Get fresh user data after potential admin setup
+        const updatedUserData = await firebaseService.getUserProfile(userCredential.user.uid)
+        
+        this.user = {
+          ...userCredential.user,
+          ...updatedUserData,
+          isAdmin: Boolean(updatedUserData?.isAdmin)
+        }
 
-  // Initialize auth
-  const auth = getAuth()
-  
-  // Monitor auth state
-  onAuthStateChanged(auth, (currentUser) => {
-    user.value = currentUser
-    loading.value = false
-  })
+        // Store admin status in localStorage for persistence
+        if (this.user.isAdmin) {
+          localStorage.setItem('userIsAdmin', 'true')
+        }
 
-  // Register a new user
-  const register = async (email, password, userData) => {
-    try {
-      error.value = null
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      
-      // Create user profile in Firestore
+        // After successful login, store user in localStorage
+        if (this.user) {
+          localStorage.setItem('userData', JSON.stringify(this.user));
+        }
+        
+        // Handle redirect after login
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          return redirectPath; // Return the path to redirect to
+        }
+        
+        return '/account'; // Default redirect
+      } catch (error) {
+        console.error('Login error:', error)
+        throw error
+      }
+    },
+    
+    // Make sure logout clears localStorage
+    async logout() {
+      try {
+        await signOut(auth)
+        this.user = null
+        localStorage.removeItem('userIsAdmin')
+        localStorage.removeItem('userData')
+        router.push('/')
+      } catch (e) {
+        this.error = e.message
+        throw e
+      }
+    },
+
+    async register(email, password, userData) {
+      try {
+        this.error = null
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        
+        // Create user profile in Firestore
+        if (userData) {
+          await firebaseService.createUserProfile(userCredential.user.uid, userData)
+        }
+        
+        router.push('/')
+        return userCredential
+      } catch (e) {
+        this.error = e.message
+        throw e
+      }
+    },
+
+    async setUser(userData) {
       if (userData) {
-        await firebaseService.createUserProfile(userCredential.user.uid, userData)
+        // Get the complete user profile including admin status
+        const userProfile = await firebaseService.getUserProfile(userData.uid)
+        console.log('User profile loaded:', userProfile)
+        
+        this.user = {
+          ...userData,
+          isAdmin: Boolean(userProfile?.isAdmin),
+          ...userProfile
+        }
+        console.log('Updated user state:', this.user)
+      } else {
+        this.user = null
       }
-      
-      router.push('/')
-      return userCredential
-    } catch (e) {
-      error.value = e.message
-      throw e
+    },
+
+    async restoreSession(firebaseUser) {
+      if (!firebaseUser) return null
+
+      try {
+        // Get fresh user profile data
+        const userProfile = await firebaseService.getUserProfile(firebaseUser.uid)
+        
+        this.user = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          isAdmin: Boolean(userProfile?.isAdmin),
+          ...userProfile
+        }
+
+        // Update localStorage
+        if (this.user.isAdmin) {
+          localStorage.setItem('userIsAdmin', 'true')
+        }
+
+        return this.user
+      } catch (error) {
+        console.error('Error restoring session:', error)
+        return null
+      }
     }
-  }
-
-  // Login user
-  const login = async (email, password) => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const userData = await firebaseService.getUserProfile(userCredential.user.uid)
-      
-      // Initialize admin status if needed
-      if (!userData?.adminUpdatedAt) {
-        await adminSetup.initializeAdminStatus()
-      }
-      
-      // Get fresh user data after potential admin setup
-      const updatedUserData = await firebaseService.getUserProfile(userCredential.user.uid)
-      
-      user.value = {
-        ...userCredential.user,
-        ...updatedUserData,
-        isAdmin: Boolean(updatedUserData?.isAdmin)
-      }
-
-      // Store admin status in localStorage for persistence
-      if (user.value.isAdmin) {
-        localStorage.setItem('userIsAdmin', 'true')
-      }
-      
-      return user.value
-    } catch (error) {
-      console.error('Login error:', error)
-      throw error
-    }
-  }
-
-  // Add function to restore session
-  async function restoreSession(firebaseUser) {
-    if (!firebaseUser) return null
-
-    try {
-      // Get fresh user profile data
-      const userProfile = await firebaseService.getUserProfile(firebaseUser.uid)
-      
-      user.value = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        isAdmin: Boolean(userProfile?.isAdmin),
-        ...userProfile
-      }
-
-      // Update localStorage
-      if (user.value.isAdmin) {
-        localStorage.setItem('userIsAdmin', 'true')
-      }
-
-      return user.value
-    } catch (error) {
-      console.error('Error restoring session:', error)
-      return null
-    }
-  }
-
-  // Logout user
-  const logout = async () => {
-    try {
-      await signOut(auth)
-      user.value = null
-      localStorage.removeItem('userIsAdmin')
-      router.push('/')
-    } catch (e) {
-      error.value = e.message
-      throw e
-    }
-  }
-
-  return { 
-    user, 
-    loading, 
-    error, 
-    register, 
-    login, 
-    logout,
-    isAdmin,
-    isAuthenticated,
-    setUser,
-    restoreSession
+  },
+  getters: {
+    isAdmin: (state) => {
+      console.log('Checking isAdmin:', state.user?.isAdmin)
+      return Boolean(state.user?.isAdmin)
+    },
+    isAuthenticated: (state) => !!state.user
   }
 })

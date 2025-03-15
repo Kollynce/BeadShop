@@ -183,16 +183,23 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-// Authentication and redirect handling - keep this guard
+// Authentication and redirect handling
 router.beforeEach(async (to, from, next) => {
   // Print current route for debugging
   console.log(`Auth check: Navigating from ${from.path} to ${to.path}`);
   
   const authStore = useAuthStore()
   
-  // Check authentication requirements
+  // Try to restore the auth state if we don't have a user yet
+  if (!authStore.user) {
+    await authStore.initAuth();
+  }
+  
+  // Check authentication requirements after potentially restoring auth
   if (to.meta.requiresAuth && !authStore.user) {
     console.log('Auth guard: Redirecting to login');
+    // Store the intended destination to redirect after login
+    sessionStorage.setItem('redirectAfterLogin', to.fullPath);
     next({ path: '/login', replace: true });
     return;
   }
@@ -201,6 +208,15 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
     console.log('Admin guard: Redirecting to home');
     next({ path: '/', replace: true });
+    return;
+  }
+  
+  // Handle redirect after login
+  if (to.path === '/login' && authStore.user) {
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
+    console.log(`User already logged in, redirecting to: ${redirectPath}`);
+    sessionStorage.removeItem('redirectAfterLogin');
+    next({ path: redirectPath });
     return;
   }
   

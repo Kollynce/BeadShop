@@ -18,8 +18,8 @@ const handleSubmit = async () => {
   loading.value = true
   
   try {
-    await authStore.login(email.value, password.value)
-    router.push('/')
+    const redirectPath = await authStore.login(email.value, password.value)
+    router.push(redirectPath)
   } catch (error) {
     errorMsg.value = error.message || 'Failed to login. Please try again.'
   } finally {
