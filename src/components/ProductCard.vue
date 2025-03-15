@@ -45,7 +45,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getImageUrl } from '@/utils/imageLoader';
 
 // Update component props to accept processImageUrl function
-defineProps({
+const props = defineProps({
   product: {
     type: Object,
     required: true
@@ -148,7 +148,7 @@ const getImageSrc = (imageUrl) => {
   return imageUrl;
 };
 
-const imageUrl = computed(() => getImageUrl(product.image || 'placeholder.jpg'));
+const imageUrl = computed(() => getImageUrl(props.product.image || 'placeholder.jpg'));
 </script>
 
 <style scoped>
