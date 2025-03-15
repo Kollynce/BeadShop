@@ -120,9 +120,9 @@ const router = createRouter({
 router.addRoute({
   path: '/:pathMatch(.*)*',
   name: 'not-found',
-  redirect: (to) => {
-    // Clean redirect to home page without preserving query params
-    return { path: '/' }
+  redirect: () => {
+    // Clean redirect to home page with no query parameters
+    return { path: '/', replace: true }
   }
 })
 
@@ -131,11 +131,11 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAuth && !authStore.user) {
-    // Redirect to login without preserving current URL
-    next({ path: '/login' })
+    // Redirect to login with replace to avoid history stacking
+    next({ path: '/login', replace: true })
   } else if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    // Redirect non-admin users to home without preserving URL
-    next({ path: '/' })
+    // Redirect non-admin users to home with replace
+    next({ path: '/', replace: true })
   } else {
     next()
   }
