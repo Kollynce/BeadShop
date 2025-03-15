@@ -116,7 +116,11 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      redirect: '/'
+      component: HomeView, // Use component instead of redirect
+      beforeEnter: (to, from, next) => {
+        console.log(`Catch-all route triggered for: ${to.fullPath}`);
+        next('/'); // Still navigate to home, but with clearer logging
+      }
     }
   ],
   strict: true, // Enable strict mode for better path matching
@@ -156,24 +160,5 @@ function isUserAdmin(user) {
   if (!user) return false
   return user.isAdmin === true
 }
-
-// SPA Navigation handling - only this method should remain
-router.beforeResolve((to, from, next) => {
-  // Check if this is initial navigation and we have a saved path
-  if (from.name === undefined && window.__spaNavigateTo) {
-    const path = window.__spaNavigateTo;
-    // Clear the global variable to prevent reuse
-    window.__spaNavigateTo = null;
-    console.log(`SPA navigation: Navigating to ${path} from ${to.fullPath}`);
-    
-    // Only change route if we're not already going to the saved path
-    if (to.fullPath !== path) {
-      next({ path: path, replace: true });
-      return;
-    }
-  }
-  
-  next();
-});
 
 export default router
