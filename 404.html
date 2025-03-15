@@ -9,9 +9,13 @@
     (function() {
       // Extract the path from the URL
       const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
       
-      // Store the path in sessionStorage so our app can use it
-      sessionStorage.setItem('spaPath', path);
+      // Store the complete URL info in localStorage so our app can use it
+      localStorage.setItem('spaNavPath', path);
+      localStorage.setItem('spaNavSearch', search);
+      localStorage.setItem('spaNavHash', hash);
       
       // Redirect to the root without adding query parameters
       window.location.replace(window.location.origin);
