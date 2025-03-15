@@ -118,8 +118,15 @@ const router = createRouter({
       name: 'not-found',
       component: HomeView, // Use component instead of redirect
       beforeEnter: (to, from, next) => {
-        console.log(`Catch-all route triggered for: ${to.fullPath}`);
-        next('/'); // Still navigate to home, but with clearer logging
+        console.log(`Not-found route triggered for: ${to.fullPath}`);
+        // Avoid redirect if we're coming from a SPA navigation
+        if (localStorage.getItem('preventHomeRedirect')) {
+          localStorage.removeItem('preventHomeRedirect');
+          next(false);
+          return;
+        }
+        // Otherwise go to home
+        next('/');
       }
     }
   ],
@@ -133,8 +140,36 @@ const router = createRouter({
   }
 })
 
+// Prevent unwanted redirects to home
+router.beforeEach((to, from, next) => {
+  // If navigation is in progress and we're trying to go home, prevent it
+  if (window.__navigationInProgress && to.path === '/' && from.path !== '/') {
+    console.log('Prevented unwanted redirect to home page');
+    next(false);
+    return;
+  }
+  
+  // Check localStorage for navigation flag
+  if (localStorage.getItem('preventHomeRedirect')) {
+    // Only apply this prevention once
+    localStorage.removeItem('preventHomeRedirect');
+    
+    if (to.path === '/' && from.name === undefined) {
+      // We're at initial load and going to home, but we don't want that
+      console.log('Initial navigation: preventing default route to home');
+      next(false);
+      return;
+    }
+  }
+  
+  next();
+});
+
 // Authentication and redirect handling - keep this guard
 router.beforeEach(async (to, from, next) => {
+  // Print current route for debugging
+  console.log(`Auth check: Navigating from ${from.path} to ${to.path}`);
+  
   const authStore = useAuthStore()
   
   // Check authentication requirements

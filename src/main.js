@@ -21,6 +21,7 @@ const handleSpaNavigation = () => {
   const savedHash = sessionStorage.getItem('spaHash') || '';
   
   console.log(`SPA init - Found path: ${savedPath || 'none'}, timestamp: ${timestamp || 'none'}`);
+  console.log(`Current route: ${router.currentRoute.value.fullPath}`);
   
   // Clear navigation data immediately to prevent reuse
   sessionStorage.removeItem('spaNavTimestamp');
@@ -31,16 +32,30 @@ const handleSpaNavigation = () => {
   // Process saved navigation if we have a path
   if (savedPath && timestamp && (Date.now() - parseInt(timestamp)) < 60000) {
     const fullPath = savedPath + savedSearch + savedHash;
-    console.log(`SPA navigation: Navigating to ${fullPath}`);
+    console.log(`SPA navigation: Planning to navigate to ${fullPath}`);
+    
+    // Store a flag in localStorage to prevent further redirects
+    localStorage.setItem('preventHomeRedirect', 'true');
     
     if (router.currentRoute.value.fullPath !== fullPath) {
-      // Use router.replace with a small delay to ensure it happens after initial navigation
+      // Increase delay to ensure router is fully stable before navigation
       setTimeout(() => {
-        router.replace(fullPath).catch(err => {
+        console.log(`SPA navigation: Now navigating to ${fullPath}`);
+        router.replace(fullPath).then(() => {
+          console.log(`After navigation, route is: ${router.currentRoute.value.fullPath}`);
+          // Set a flag to prevent further redirects for 2 seconds
+          window.__navigationInProgress = true;
+          setTimeout(() => {
+            window.__navigationInProgress = false;
+          }, 2000);
+        }).catch(err => {
           console.error('Navigation error:', err);
         });
-      }, 50); // Small delay to ensure router is fully initialized
+      }, 200); // Increased delay
     }
+  } else {
+    // Clear localStorage flag if we're not coming from a redirect
+    localStorage.removeItem('preventHomeRedirect');
   }
 };
 
