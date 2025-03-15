@@ -3,8 +3,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  // Update the base path for GitHub Pages deployment
-  base: '/BeadShop/',  // Change this to match your GitHub repository name
+  // Update the base path for custom domain deployment
+  base: '/',
   plugins: [vue()],
   resolve: {
     alias: {
