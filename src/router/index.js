@@ -165,7 +165,7 @@ if (typeof window !== 'undefined') {
     const savedHash = sessionStorage.getItem('spaHash') || '';
     
     // Only process saved navigation if we're at the root and have saved data
-    if (window.location.pathname === '/' && savedPath) {
+    if (window.location.pathname === '/' && savedPath && savedPath !== '/') {
       // Check if the saved navigation is recent (within last 5 seconds)
       const isRecent = timestamp && (Date.now() - parseInt(timestamp)) < 5000;
       
@@ -185,6 +185,13 @@ if (typeof window !== 'undefined') {
           // If navigation fails, stay on current page
         });
       }
+    } else {
+      // Always clear session storage navigation data once router is ready
+      // to prevent unexpected redirects on subsequent reloads
+      sessionStorage.removeItem('spaPath');
+      sessionStorage.removeItem('spaSearch');
+      sessionStorage.removeItem('spaHash');
+      sessionStorage.removeItem('spaNavTimestamp');
     }
   });
 }
