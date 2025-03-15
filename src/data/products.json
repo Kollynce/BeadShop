@@ -1,0 +1,103 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Diamond Engagement Ring",
+      "description": "Beautiful 1-carat diamond set in 18k rose gold with pavé band",
+      "price": 2499.99,
+      "image": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "rings",
+      "metal": "rose-gold",
+      "tags": ["luxury", "new-arrivals"],
+      "inStock": true
+    },
+    {
+      "id": "2",
+      "name": "Pearl Pendant Necklace",
+      "description": "Elegant freshwater pearl pendant on sterling silver chain",
+      "price": 89.99,
+      "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "necklaces",
+      "metal": "silver",
+      "tags": ["under-100", "trending"],
+      "inStock": true
+    },
+    {
+      "id": "3",
+      "name": "Gold Hoop Earrings",
+      "description": "Classic 14k gold hoop earrings, perfect for everyday wear",
+      "price": 349.99,
+      "image": "https://images.unsplash.com/photo-1610694955371-d4a3f5146182?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "earrings",
+      "metal": "gold",
+      "tags": ["100-500", "trending"],
+      "inStock": true
+    },
+    {
+      "id": "4",
+      "name": "Platinum Wedding Band",
+      "description": "Simple and elegant platinum wedding band with matte finish",
+      "price": 899.99,
+      "image": "https://images.unsplash.com/photo-1575224526797-5730d09d781d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "rings",
+      "metal": "platinum",
+      "tags": ["500-1000", "luxury"],
+      "inStock": true
+    },
+    {
+      "id": "5",
+      "name": "Silver Charm Bracelet",
+      "description": "Adjustable sterling silver bracelet with various charms",
+      "price": 129.99,
+      "image": "https://images.unsplash.com/photo-1618019309815-e5698a9a900a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "bracelets",
+      "metal": "silver",
+      "tags": ["100-500", "trending"],
+      "inStock": true
+    },
+    {
+      "id": "6",
+      "name": "Luxury Diamond Watch",
+      "description": "Premium watch with diamond accents and leather strap",
+      "price": 3299.99,
+      "image": "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "watches",
+      "metal": "gold",
+      "tags": ["1000-plus", "luxury", "new-arrivals"],
+      "inStock": true
+    },
+    {
+      "id": "7",
+      "name": "Rose Gold Tennis Bracelet",
+      "description": "Stunning rose gold tennis bracelet with cubic zirconia stones",
+      "price": 799.99,
+      "image": "https://images.unsplash.com/photo-1602173574767-37ac01994b2c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "bracelets",
+      "metal": "rose-gold",
+      "tags": ["500-1000", "new-arrivals"],
+      "inStock": true
+    },
+    {
+      "id": "8",
+      "name": "Silver Drop Earrings",
+      "description": "Elegant sterling silver drop earrings with blue topaz",
+      "price": 79.99,
+      "image": "https://images.unsplash.com/photo-1600721391689-2564bb8055de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "earrings",
+      "metal": "silver",
+      "tags": ["under-100", "sale"],
+      "inStock": true
+    },
+    {
+      "id": "9",
+      "name": "Platinum Diamond Necklace",
+      "description": "Exquisite platinum necklace with 2-carat diamond pendant",
+      "price": 4999.99,
+      "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      "category": "necklaces",
+      "metal": "platinum",
+      "tags": ["1000-plus", "luxury"],
+      "inStock": true
+    }
+  ]
+}

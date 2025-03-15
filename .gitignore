@@ -1,0 +1,63 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.npm
+.yarn
+
+# Build directories
+dist
+dist-ssr
+*.local
+.output
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Coverage directories
+coverage
+.nyc_output
+
+# Firebase specific
+.firebase/
+.firebaserc
+firebase-debug.log
+
+# Local Netlify folder
+.netlify
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+
+# Lock files (keep one depending on your package manager preference)
+# yarn.lock
+# package-lock.json
+
+# Testing
+/test/unit/coverage/
+/test/e2e/reports/
+
+# Temporary files
+*.tmp
+*.temp
