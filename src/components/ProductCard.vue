@@ -11,7 +11,7 @@
     <router-link :to="`/product/${product.id}`" class="cursor-pointer block">
       <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg">
         <img 
-          :src="imageUrl" 
+          :src="productImageUrl" 
           :alt="product.name"
           v-img-fallback
           class="h-60 w-full object-cover object-center group-hover:opacity-90" 
@@ -153,6 +153,22 @@ const imageUrl = computed(() => {
     return getImageUrl('placeholder.jpg');
   }
   return getImageUrl(props.product.image);
+});
+
+const imageError = ref(false);
+const defaultImage = '/images/placeholder.jpg';
+
+const productImageUrl = computed(() => {
+  if (imageError.value || !props.product.image) {
+    return defaultImage;
+  }
+  // Check if image path is a full URL or relative path
+  if (props.product.image.startsWith('http')) {
+    return props.product.image;
+  } else {
+    // If using relative paths within your project
+    return new URL(`/src/assets/${props.product.image}`, import.meta.url).href;
+  }
 });
 </script>
 
