@@ -3,6 +3,22 @@ import HomeView from '../views/HomeView.vue'
 import { useAuthStore } from '../stores/auth'
 import { requireAdmin } from './guards'
 
+// Import all views directly to avoid lazy loading issues on GitHub Pages
+import ProductsView from '../views/ProductsView.vue'
+import ProductDetailView from '../views/ProductDetailView.vue'
+import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
+import AccountView from '../views/AccountView.vue'
+import CartView from '../views/CartView.vue'
+import CheckoutView from '../views/CheckoutView.vue'
+import AboutUs from '../views/AboutUs.vue'
+import ContactView from '../views/ContactView.vue'
+import AdminDashboard from '../views/AdminDashboard.vue'
+import AdminProductsView from '../views/AdminProductsView.vue'
+import AdminProductForm from '../views/AdminProductForm.vue'
+import AdminOrders from '../views/AdminOrders.vue'
+import AdminUsersView from '../views/AdminUsersView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -14,89 +30,97 @@ const router = createRouter({
     {
       path: '/products',
       name: 'products',
-      component: () => import('../views/ProductsView.vue')
+      component: ProductsView
     },
     {
       path: '/product/:id',
       name: 'product-detail',
-      component: () => import('../views/ProductDetailView.vue')
+      component: ProductDetailView
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/LoginView.vue')
+      component: LoginView
     },
     {
       path: '/register',
       name: 'register',
-      component: () => import('../views/RegisterView.vue')
+      component: RegisterView
     },
     {
       path: '/account',
       name: 'account',
-      component: () => import('../views/AccountView.vue'),
+      component: AccountView,
       meta: { requiresAuth: true }
     },
     {
       path: '/cart',
       name: 'cart',
-      component: () => import('../views/CartView.vue')
+      component: CartView
     },
     {
       path: '/checkout',
       name: 'checkout',
-      component: () => import('../views/CheckoutView.vue'),
+      component: CheckoutView,
       meta: { requiresAuth: true }
     },
     {
       path: '/about',
       name: 'about',
-      component: () => import('../views/AboutUs.vue')
+      component: AboutUs
     },
     {
       path: '/contact',
       name: 'contact',
-      component: () => import('../views/ContactView.vue')
+      component: ContactView
     },
     // Admin Routes
     {
       path: '/admin',
       name: 'admin',
-      component: () => import('../views/AdminDashboard.vue'),
+      component: AdminDashboard,
       meta: { requiresAuth: true, isAdmin: true }
     },
     {
       path: '/admin/products',
       name: 'admin-products',
-      component: () => import('../views/AdminProductsView.vue'),
+      component: AdminProductsView,
       meta: { requiresAuth: true, isAdmin: true }
     },
     {
       path: '/admin/products/new',
       name: 'admin-product-new',
-      component: () => import('../views/AdminProductForm.vue'),
+      component: AdminProductForm,
       meta: { requiresAuth: true, isAdmin: true }
     },
     {
       path: '/admin/products/edit/:id',
       name: 'admin-product-edit',
-      component: () => import('../views/AdminProductForm.vue'),
+      component: AdminProductForm,
       meta: { requiresAuth: true, isAdmin: true }
     },
     {
       path: '/admin/orders',
       name: 'admin-orders',
-      component: () => import('../views/AdminOrders.vue'),
+      component: AdminOrders,
       meta: { requiresAuth: true, isAdmin: true }
     },
     {
       path: '/admin/users',
       name: 'admin-users',
-      component: () => import('../views/AdminUsersView.vue'),
+      component: AdminUsersView,
       meta: { requiresAuth: true, isAdmin: true },
       beforeEnter: requireAdmin
     }
-  ]
+  ],
+  // Ensure trailing slashes are handled correctly
+  strict: false
+})
+
+// Add a catch-all route for GitHub Pages 404 handling
+router.addRoute({
+  path: '/:pathMatch(.*)*',
+  redirect: '/'
 })
 
 // Navigation guard for protected routes

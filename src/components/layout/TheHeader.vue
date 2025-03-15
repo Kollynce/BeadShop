@@ -84,7 +84,7 @@
             <div class="ml-4 flex lg:ml-0">
               <RouterLink to="/" class="inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md">
                 <span class="sr-only">Beabed Art</span>
-                <img src="../../../public/images/sticky.PNG" alt="Beabed Art Logo" class="h-8 w-auto" />
+                <img :src="getPublicImageUrl('images/sticky.PNG')" alt="Beaded Art Logo" class="h-8 w-auto" />
               </RouterLink>
             </div>
 
@@ -222,6 +222,7 @@ import {
   MoonIcon
 } from '@heroicons/vue/24/outline'
 import { useRouter, useRoute } from 'vue-router'
+import { getPublicImageUrl } from '@/utils/imageLoader';
 
 const router = useRouter()
 const route = useRoute()

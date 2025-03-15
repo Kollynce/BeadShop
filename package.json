@@ -2,10 +2,13 @@
   "name": "jewelry-shop",
   "version": "0.0.0",
   "private": true,
+  "homepage": "https://kollynce.github.io/BeadShop/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.19",
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.3",
     "autoprefixer": "^10.4.17",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "vite": "^5.0.10"

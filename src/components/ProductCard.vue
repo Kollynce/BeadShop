@@ -9,9 +9,12 @@
     </div>
     
     <router-link :to="`/product/${product.id}`" class="cursor-pointer block">
-      <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg">
-        <img :src="processImageUrl(product.imageUrl || product.image)" :alt="product.name"
-            class="h-60 w-full object-cover object-center group-hover:opacity-90" @error="handleImageError">
+      <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-light-neutral-100 dark:bg-dark-neutral-800">
+        <img 
+          :src="processProductImage()" 
+          :alt="product.name"
+          class="h-60 w-full object-cover object-center group-hover:opacity-90" 
+          @error="handleImageError">
       </div>
       <div class="p-4">
         <div class="items-start">
@@ -38,22 +41,90 @@
 import { ref, nextTick } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { formatCurrency } from '@/utils/currency';
+import { getImageUrl } from '@/utils/imageLoader';
 
-// Update component props to accept processImageUrl function
-defineProps({
+const props = defineProps({
   product: {
     type: Object,
     required: true
   },
   processImageUrl: {
     type: Function,
-    default: url => url // Default function just returns the URL unchanged
+    default: url => url
   }
 });
 
 const cartStore = useCartStore();
 const animatingItem = ref(null);
 const cartAnimationEl = ref(null);
+
+// Process product image with multiple fallbacks similar to ProductDetailView
+const processProductImage = () => {
+  const defaultImage = getImageUrl('placeholder.jpg');
+  
+  // First try the product's images array if it exists
+  if (props.product.images && props.product.images.length > 0) {
+    const firstImage = props.product.images[0];
+    
+    // Handle both string and object formats
+    if (typeof firstImage === 'string') {
+      return processImageUrl(firstImage);
+    } else if (firstImage.main) {
+      return processImageUrl(firstImage.main);
+    } else if (firstImage.url) {
+      return processImageUrl(firstImage.url);
+    }
+  }
+  
+  // Then try individual image fields
+  if (props.product.image) {
+    return processImageUrl(props.product.image);
+  }
+  
+  if (props.product.imageUrl) {
+    return processImageUrl(props.product.imageUrl);
+  }
+  
+  // If no product images found, use placeholder
+  return defaultImage;
+};
+
+// Add processImageUrl function from ProductDetailView
+const processImageUrl = (url) => {
+  if (!url) return null;
+  
+  // Handle base64 images with the incorrect prefix
+  if (typeof url === 'string' && url.startsWith('base64://')) {
+    return url.replace('base64://', '');
+  }
+  
+  // For normal URLs
+  return url;
+}
+
+// Improve error handler to match ProductDetailView
+const handleImageError = (event) => {
+  console.error('Image failed to load:', event.target.src);
+  
+  // Use a locally hosted fallback image
+  event.target.src = getImageUrl('placeholder.jpg');
+  
+  // If local fallback fails, use inline SVG as final fallback
+  event.target.onerror = function() {
+    const parent = event.target.parentNode;
+    if (parent) {
+      const svgElement = document.createElement('div');
+      svgElement.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+          <rect width="100%" height="100%" fill="#f0f0f0"/>
+          <path d="M12 6v12M6 12h12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+      svgElement.className = 'broken-image';
+      parent.replaceChild(svgElement, event.target);
+    }
+  };
+};
 
 const addToCart = async (product) => {
   // Get button position as starting point
@@ -101,46 +172,6 @@ const addToCart = async (product) => {
     // Fallback if animation element is not available
     cartStore.addToCart(product, 1);
   }
-}
-
-// Handle image errors
-const handleImageError = (event) => {
-  console.error('Image failed to load:', event.target.src);
-  event.target.src = '/images/no-image.jpg';
-  
-  // If the local fallback fails, use inline SVG
-  event.target.onerror = function() {
-    const parent = event.target.parentNode;
-    if (parent) {
-      const svgElement = document.createElement('div');
-      svgElement.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
-          <rect width="100%" height="100%" fill="#f0f0f0"/>
-          <path d="M12 6v12M6 12h12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      `;
-      svgElement.className = 'broken-image';
-      parent.replaceChild(svgElement, event.target);
-    }
-  };
-}
-
-// Helper function to handle different image formats
-const getImageSrc = (imageUrl) => {
-  if (!imageUrl) return 'https://via.placeholder.com/300x300?text=No+Image';
-  
-  if (typeof imageUrl === 'string') {
-    // Handle base64 images
-    if (imageUrl.startsWith('base64://')) {
-      return imageUrl.replace('base64://', '');
-    }
-    // Handle temp images
-    if (imageUrl.startsWith('temp://')) {
-      return imageUrl.replace('temp://', '');
-    }
-  }
-  
-  return imageUrl;
 };
 </script>
 

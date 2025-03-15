@@ -212,6 +212,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner.vue';
 import Modal from '../components/ui/Modal.vue';
 import Button from '../components/ui/Button.vue';
 import { formatCurrency } from '@/utils/currency';
+import { getImageUrl } from '@/utils/imageLoader';
 
 const router = useRouter();
 const products = ref([]);
@@ -226,7 +227,7 @@ const emptyProduct = ref({});
  * Returns a valid image URL or a placeholder image.
  */
 const processImageUrl = (url) => {
-  if (!url) return '/images/no-image.jpg';
+  if (!url) return getImageUrl('placeholder.jpg');
   
   if (typeof url === 'string') {
     // Handle base64 images
@@ -251,7 +252,7 @@ const processImageUrl = (url) => {
  */
 const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
-  event.target.src = '/images/no-image.jpg';
+  event.target.src = getImageUrl('placeholder.jpg');
   
   event.target.onerror = function() {
     const parent = event.target.parentNode;

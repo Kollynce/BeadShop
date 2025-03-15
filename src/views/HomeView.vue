@@ -5,7 +5,7 @@
       v-if="animatingItem" 
       class="cart-animation fixed pointer-events-none z-50" 
       ref="cartAnimationEl"
-      :style="{ backgroundImage: `url(${animatingItem?.image || animatingItem?.imageUrl || '/images/no-image.jpg'})` }">
+      :style="{ backgroundImage: `url(${animatingItem?.image || animatingItem?.imageUrl || getImageUrl('placeholder.jpg')})` }">
     </div>
     
     <!-- Hero Section -->
@@ -229,10 +229,10 @@
           </dl>
         </div>
         <div class="grid grid-cols-2 grid-rows-2 gap-4 sm:gap-6 lg:gap-8">
-          <img src="/images/Auqa Sand.jpeg" alt="Close-up of beaded bracelet showing intricate pattern work." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" />
-          <img src="/images/Golden black.jpeg" alt="Detail view of beaded necklace clasp and finishing." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" />
-          <img src="/images/Golden Green.jpeg" alt="Arrangement of colorful beads used in our jewelry collection." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" />
-          <img src="/images/Neeon Moon 3.jpeg" alt="Handcrafting process showing artisan creating a beaded piece." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" />
+          <img :src="getPublicImageUrl('images/Auqa Sand.jpeg')" alt="Close-up of beaded bracelet showing intricate pattern work." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" @error="handleImageError" />
+          <img :src="getPublicImageUrl('images/Golden black.jpeg')" alt="Detail view of beaded necklace clasp and finishing." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" @error="handleImageError" />
+          <img :src="getPublicImageUrl('images/Golden Green.jpeg')" alt="Arrangement of colorful beads used in our jewelry collection." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" @error="handleImageError" />
+          <img :src="getPublicImageUrl('images/Neeon Moon 3.jpeg')" alt="Handcrafting process showing artisan creating a beaded piece." class="rounded-lg bg-light-neutral-100 dark:bg-dark-neutral-800" @error="handleImageError" />
         </div>
       </div>
     </section>
@@ -341,6 +341,7 @@ import { useCartStore } from '@/stores/cart'
 import { mockDataLoader } from '../utils/mockDataLoader'
 import ProductCard from '@/components/ProductCard.vue'
 import { formatCurrency } from '@/utils/currency'
+import { getImageUrl, getPublicImageUrl } from '@/utils/imageLoader'
 
 // Update utility function to process image URLs
 const processImageUrl = (url) => {
@@ -363,7 +364,7 @@ const processImageUrl = (url) => {
 // Function to handle image errors
 const handleImageError = (event) => {
   console.error('Image failed to load:', event.target.src);
-  event.target.src = '/images/no-image.jpg';
+  event.target.src = getImageUrl('placeholder.jpg');
   
   // If the local fallback fails, use inline SVG
   event.target.onerror = function() {
@@ -437,37 +438,37 @@ const collections = ref([
   {
     name: 'Rings',
     description: 'Exquisite engagement rings, wedding bands, and statement pieces crafted with precision and passion.',
-    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: getPublicImageUrl('images/Golden Green.jpeg'),
     category: 'rings'
   },
   {
     name: 'Necklaces',
     description: 'Elegant pendants and chains designed to complement any outfit and occasion.',
-    image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: getPublicImageUrl('images/Neeon Moon.jpeg'),
     category: 'necklaces'
   },
   {
     name: 'Earrings',
     description: 'From subtle studs to dramatic drops, find the perfect accent for your personal style.',
-    image: 'https://images.unsplash.com/photo-1610694955371-d4a3f5146182?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: getPublicImageUrl('images/Auqa Sand.jpeg'),
     category: 'earrings'
   },
   {
     name: 'Bracelets',
     description: 'Add sparkle to your wrist with our selection of charm bracelets, bangles, and cuffs.',
-    image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: getPublicImageUrl('images/Golden black.jpeg'),
     category: 'bracelets'
   },
   {
     name: 'Watches',
     description: 'Precision timepieces that combine functionality with sophisticated design.',
-    image: 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: getPublicImageUrl('images/Neeon Moon 2.jpeg'),
     category: 'watches'
   },
   {
     name: 'Luxury Collection',
     description: 'Exclusive high-end pieces for those special moments that deserve extraordinary jewelry.',
-    image: 'https://images.unsplash.com/photo-1633810542706-90e5ff7557be?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: getPublicImageUrl('images/Neeon Moon 3.jpeg'),
     category: 'luxury'
   },
 ])
