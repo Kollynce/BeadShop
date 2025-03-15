@@ -129,18 +129,20 @@ const router = createRouter({
   }
 })
 
-// Authentication and redirect handling
+// Authentication and redirect handling - keep this guard
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
   // Check authentication requirements
   if (to.meta.requiresAuth && !authStore.user) {
+    console.log('Auth guard: Redirecting to login');
     next({ path: '/login', replace: true });
     return;
   }
   
   // Check admin requirements
   if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
+    console.log('Admin guard: Redirecting to home');
     next({ path: '/', replace: true });
     return;
   }
@@ -155,56 +157,23 @@ function isUserAdmin(user) {
   return user.isAdmin === true
 }
 
-// Handle initial SPA navigation - modified for better reliability
+// SPA Navigation handling - only this method should remain
 router.beforeResolve((to, from, next) => {
   // Check if this is initial navigation and we have a saved path
   if (from.name === undefined && window.__spaNavigateTo) {
     const path = window.__spaNavigateTo;
     // Clear the global variable to prevent reuse
     window.__spaNavigateTo = null;
-    console.log(`SPA navigation: Navigating to ${path}`);
+    console.log(`SPA navigation: Navigating to ${path} from ${to.fullPath}`);
     
     // Only change route if we're not already going to the saved path
     if (to.fullPath !== path) {
-      next(path);
+      next({ path: path, replace: true });
       return;
     }
   }
   
   next();
 });
-
-// Handle initial SPA navigation
-if (typeof window !== 'undefined') {
-  // Initialize router with proper SPA navigation handling
-  router.isReady().then(() => {
-    const timestamp = sessionStorage.getItem('spaNavTimestamp');
-    const savedPath = sessionStorage.getItem('spaPath');
-    const savedSearch = sessionStorage.getItem('spaSearch') || '';
-    const savedHash = sessionStorage.getItem('spaHash') || '';
-    
-    // Clear navigation data to prevent reusing it
-    sessionStorage.removeItem('spaPath');
-    sessionStorage.removeItem('spaSearch');
-    sessionStorage.removeItem('spaHash');
-    sessionStorage.removeItem('spaNavTimestamp');
-    
-    // Process saved navigation if we have a path
-    if (savedPath) {
-      // Increase time window to 30 seconds for slower connections
-      const isRecent = timestamp && (Date.now() - parseInt(timestamp)) < 30000;
-      
-      if (isRecent && savedPath !== '/') {
-        // Reconstruct the full path
-        const fullPath = savedPath + savedSearch + savedHash;
-        
-        // Use replace to avoid adding to history
-        router.replace(fullPath).catch(err => {
-          console.error('Navigation error:', err);
-        });
-      }
-    }
-  });
-}
 
 export default router

@@ -12,6 +12,8 @@ if (typeof window !== 'undefined') {
   const savedSearch = sessionStorage.getItem('spaSearch') || '';
   const savedHash = sessionStorage.getItem('spaHash') || '';
   
+  console.log(`SPA init - Found path: ${savedPath || 'none'}, timestamp: ${timestamp || 'none'}`);
+  
   // Clear navigation data immediately to prevent reuse
   sessionStorage.removeItem('spaNavTimestamp');
   sessionStorage.removeItem('spaPath');
@@ -35,5 +37,6 @@ app.directive('img-fallback', imageErrorDirective)
 
 // Wait for router to be ready before mounting
 router.isReady().then(() => {
+  console.log('Router ready, mounting app');
   app.mount('#app')
 })
