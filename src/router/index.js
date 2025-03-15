@@ -157,11 +157,21 @@ function isUserAdmin(user) {
 
 // Save current route to localStorage when navigating
 router.afterEach((to) => {
-  // Don't save the home page route
-  if (to.path !== '/') {
-    localStorage.setItem('spaNavPath', to.path);
-    localStorage.setItem('spaNavSearch', to.fullPath.includes('?') ? to.fullPath.substring(to.fullPath.indexOf('?')) : '');
-    localStorage.setItem('spaNavHash', to.hash || '');
+  // Only save the path if we're not in a restoration process
+  const isRestoringNavigation = sessionStorage.getItem('restoringNavigation') === 'true';
+  
+  if (!isRestoringNavigation) {
+    if (to.path !== '/') {
+      localStorage.setItem('spaNavPath', to.path);
+      localStorage.setItem('spaNavSearch', to.fullPath.includes('?') ? to.fullPath.substring(to.fullPath.indexOf('?')) : '');
+      localStorage.setItem('spaNavHash', to.hash || '');
+    } else {
+      // If we're navigating to home explicitly (not during restoration),
+      // clear the saved navigation state
+      localStorage.removeItem('spaNavPath');
+      localStorage.removeItem('spaNavSearch');
+      localStorage.removeItem('spaNavHash');
+    }
   }
   
   // Clean any recursive query parameters if they exist
@@ -172,6 +182,9 @@ router.afterEach((to) => {
       window.history.replaceState({}, document.title, cleanUrl);
     }
   }
+  
+  // Reset the restoration flag
+  sessionStorage.removeItem('restoringNavigation');
 });
 
 // Handle initial routing based on localStorage
@@ -183,6 +196,9 @@ if (typeof window !== 'undefined') {
     const savedHash = localStorage.getItem('spaNavHash') || '';
     
     if (savedPath && savedPath !== '/' && window.location.pathname === '/') {
+      // Set a flag to indicate we're restoring navigation
+      sessionStorage.setItem('restoringNavigation', 'true');
+      
       // We have a saved path from a refresh or direct access
       // Construct the full path with query params and hash if available
       const fullPath = savedPath + savedSearch + savedHash;
