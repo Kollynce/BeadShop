@@ -10,6 +10,6 @@ export default defineConfig({
       'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
-  base: '/Jewelry/', // Add this line with your repository name
+  base: '/BeadShop/', // Update this to match your actual repository name
   assetsInclude: ['**/*.PNG', '**/*.png']
 })

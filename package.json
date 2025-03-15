@@ -2,7 +2,7 @@
   "name": "jewelry-shop",
   "version": "0.0.0",
   "private": true,
-  "homepage": "https://yourusername.github.io/repository-name",
+  "homepage": "https://kollynce.github.io/BeadShop/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
