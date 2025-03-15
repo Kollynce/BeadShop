@@ -14,6 +14,11 @@ const errorMsg = ref('')
 const loading = ref(false)
 
 const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    errorMsg.value = 'Please enter both email and password.';
+    return;
+  }
+
   try {
     loading.value = true;
     errorMsg.value = null;
@@ -28,7 +33,7 @@ const handleLogin = async () => {
     router.push(redirectPath);
   } catch (error) {
     console.error('Login error:', error);
-    errorMsg.value = error.message || 'Failed to login. Please try again.';
+    errorMsg.value = error.message || 'Failed to sign in. Please check your credentials.';
   } finally {
     loading.value = false;
   }

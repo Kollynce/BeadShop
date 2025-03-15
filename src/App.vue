@@ -63,6 +63,16 @@ onMounted(async () => {
       setTimeout(() => { window.__navIsUserAction = false; }, 500);
     }
   });
+
+  // Detect user-initiated navigation to home
+  document.addEventListener('click', event => {
+    const link = event.target.closest('a[href="/"]');
+    if (link) {
+      console.log('User clicked home link, marking as user action');
+      // Mark as intentional navigation
+      window.__navIsUserAction = true;
+    }
+  });
 })
 </script>
 

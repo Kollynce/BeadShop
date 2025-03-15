@@ -140,98 +140,70 @@ const router = createRouter({
   }
 })
 
-// More balanced protection against unwanted redirects to home
+// REMOVE all existing navigation guards
+// Only keep these two simple guards:
+
+// 1. SPA Navigation Guard - Simple version
 router.beforeEach((to, from, next) => {
-  // Log all navigations for debugging
-  console.log(`Navigation requested: ${from.path} → ${to.path}`);
+  // If this is a navigation from SPA redirect
+  if (window.__spaRedirectInProgress && from.path === '/' && to.path === '/') {
+    const targetPath = window.__spaRedirectPath;
+    console.log(`SPA redirect: Redirecting from home to ${targetPath}`);
+    window.__spaRedirectInProgress = false;
+    window.__spaRedirectPath = null;
+    next(targetPath);
+    return;
+  }
   
-  // Only block automatic redirects to home, not intentional navigation
-  if (to.path === '/' && from.path !== '/' && from.name !== undefined) {
-    // Check if this is a user-initiated navigation (e.g., clicking a link)
-    if (window.__navIsUserAction) {
-      // Allow user-initiated navigations to home
-      console.log('User navigation to home allowed');
-      window.__navIsUserAction = false;
-      next();
-      return;
-    }
-    
-    // For programmatic navigations, only block if we're actively preventing redirects
-    if (window.__navigationInProgress || localStorage.getItem('preventHomeRedirect')) {
-      console.log(`⛔ Blocked unexpected navigation to home from ${from.path}`);
-      localStorage.removeItem('preventHomeRedirect');
-      next(false);
-      return;
+  // Allow all other navigation
+  next();
+});
+
+// 2. Authentication Guard - Simpler version
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+  
+  // Restore auth first if needed
+  if (!authStore.user) {
+    try {
+      await authStore.initAuth();
+      console.log('Auth state initialized:', authStore.user ? 'logged in' : 'not logged in');
+    } catch (err) {
+      console.error('Auth initialization error:', err);
     }
   }
   
-  // Check localStorage for navigation flag - only for initial navigation
-  if (localStorage.getItem('preventHomeRedirect') && to.path === '/' && from.name === undefined) {
-    // We're at initial load and going to home, but we don't want that
-    console.log('Initial navigation: preventing default route to home');
-    localStorage.removeItem('preventHomeRedirect');
-    next(false);
+  // Handle authentication requirements
+  if (to.meta.requiresAuth && !authStore.user) {
+    console.log(`Auth required for ${to.path}, redirecting to login`);
+    sessionStorage.setItem('redirectAfterLogin', to.fullPath);
+    next('/login');
+    return;
+  }
+  
+  // Handle admin requirements
+  if (to.meta.isAdmin && (!authStore.user || !authStore.user.isAdmin)) {
+    console.log('Admin access denied, redirecting to home');
+    next('/');
+    return;
+  }
+  
+  // Handle already logged in users trying to access login page
+  if (to.path === '/login' && authStore.user) {
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
+    sessionStorage.removeItem('redirectAfterLogin');
+    console.log(`Already logged in, redirecting to ${redirectPath}`);
+    next(redirectPath);
     return;
   }
   
   next();
 });
 
-// Authentication and redirect handling
-router.beforeEach(async (to, from, next) => {
-  // Print current route for debugging
-  console.log(`Auth check: Navigating from ${from.path} to ${to.path}`);
-  
-  const authStore = useAuthStore()
-  
-  // Try to restore the auth state if we don't have a user yet
-  if (!authStore.user) {
-    await authStore.initAuth();
-  }
-  
-  // Check authentication requirements after potentially restoring auth
-  if (to.meta.requiresAuth && !authStore.user) {
-    console.log('Auth guard: Redirecting to login');
-    // Store the intended destination to redirect after login
-    sessionStorage.setItem('redirectAfterLogin', to.fullPath);
-    next({ path: '/login', replace: true });
-    return;
-  }
-  
-  // Check admin requirements
-  if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    console.log('Admin guard: Redirecting to home');
-    next({ path: '/', replace: true });
-    return;
-  }
-  
-  // Handle redirect after login
-  if (to.path === '/login' && authStore.user) {
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
-    console.log(`User already logged in, redirecting to: ${redirectPath}`);
-    sessionStorage.removeItem('redirectAfterLogin');
-    next({ path: redirectPath });
-    return;
-  }
-  
-  // All checks passed
-  next();
-})
-
 // Helper function to check if user is an admin
 function isUserAdmin(user) {
-  if (!user) return false
-  return user.isAdmin === true
-}
-
-// Fix the catch-all route
-const catchAllRoute = router.options.routes.find(r => r.path === '/:pathMatch(.*)*');
-if (catchAllRoute) {
-  catchAllRoute.beforeEnter = (to, from, next) => {
-    console.log(`Not-found route triggered for: ${to.fullPath}`);
-    // Just display the 404 component without redirecting
-    next();
-  };
+  if (!user) return false;
+  return user.isAdmin === true;
 }
 
 export default router
