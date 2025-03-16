@@ -1,5 +1,5 @@
-https://yourdomain.com/?/
-https://yourdomain.com/?/about
-https://yourdomain.com/?/account
-https://yourdomain.com/?/checkout
-https://yourdomain.com/?/login
+https://kreativekanvas.shop/?/
+https://kreativekanvas.shop/?/about
+https://kreativekanvas.shop/?/account
+https://kreativekanvas.shop/?/checkout
+https://kreativekanvas.shop/?/login
