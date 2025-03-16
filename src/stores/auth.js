@@ -11,13 +11,18 @@ import { firebaseService } from '../services/firebaseService'
 import router from '../router'
 import { adminSetup } from '../utils/adminSetup'
 
+// Initialize Firebase auth instance at the module level
+// This ensures it's only created once and available to all methods
+const auth = getAuth();
+
 // Add a property to track initialization
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     isInitializing: true,
     loading: true,
-    error: null
+    error: null,
+    authChecked: false, // Track if auth has been checked
   }),
   actions: {
     async initialize() {
@@ -29,7 +34,7 @@ export const useAuthStore = defineStore('auth', {
         // e.g. check localStorage, Firebase, etc.
         
         // Example:
-        const savedUser = localStorage.getItem('user');
+        const savedUser = localStorage.getItem('userData');
         if (savedUser) {
           this.user = JSON.parse(savedUser);
         }
@@ -43,6 +48,7 @@ export const useAuthStore = defineStore('auth', {
     // Add or update the initAuth method
     async initAuth() {
       console.log('Initializing auth state');
+      this.isInitializing = true;
       
       try {
         // Try to get user data from localStorage
@@ -57,14 +63,13 @@ export const useAuthStore = defineStore('auth', {
             if (parsedData && parsedData.uid) {
               this.user = parsedData;
               
-              // Important: set loading to false to indicate auth is ready
-              this.loading = false;
-              
               // If admin status is stored separately, ensure it's consistent
               if (localStorage.getItem('userIsAdmin') && !this.user.isAdmin) {
                 this.user.isAdmin = true;
               }
               
+              this.authChecked = true;
+              this.loading = false;
               return true;
             }
           } catch (parseError) {
@@ -72,14 +77,70 @@ export const useAuthStore = defineStore('auth', {
           }
         }
         
-        // No valid user data found
-        this.loading = false;
-        return false;
+        // If no valid user in localStorage, check Firebase auth state
+        return new Promise((resolve) => {
+          const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            unsubscribe(); // Stop listening immediately
+            
+            if (firebaseUser) {
+              console.log('Firebase user found:', firebaseUser.email);
+              
+              try {
+                // Get user profile from Firebase
+                const userProfile = await firebaseService.getUserProfile(firebaseUser.uid);
+                
+                this.user = {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email,
+                  displayName: firebaseUser.displayName || userProfile?.displayName,
+                  isAdmin: Boolean(userProfile?.isAdmin),
+                  ...userProfile
+                };
+                
+                // Store in localStorage
+                localStorage.setItem('userData', JSON.stringify(this.user));
+                if (this.user.isAdmin) {
+                  localStorage.setItem('userIsAdmin', 'true');
+                }
+                
+                resolve(true);
+              } catch (error) {
+                console.error('Error getting user profile:', error);
+                this.user = null;
+                resolve(false);
+              }
+            } else {
+              console.log('No Firebase user found');
+              this.user = null;
+              resolve(false);
+            }
+            
+            this.authChecked = true;
+            this.loading = false;
+            this.isInitializing = false;
+          }, (error) => {
+            console.error('Firebase auth state error:', error);
+            this.authChecked = true;
+            this.loading = false;
+            this.isInitializing = false;
+            resolve(false);
+          });
+          
+          // Set a timeout in case Firebase is slow to respond
+          setTimeout(() => {
+            this.authChecked = true;
+            this.loading = false;
+            this.isInitializing = false;
+            resolve(false);
+          }, 3000);
+        });
       } catch (error) {
         console.error('Error in auth initialization:', error);
         localStorage.removeItem('userData');
         this.user = null;
         this.loading = false;
+        this.isInitializing = false;
+        this.authChecked = true;
         return false;
       }
     },
@@ -115,8 +176,8 @@ export const useAuthStore = defineStore('auth', {
         
         return redirectPath;
       } catch (error) {
-        console.error('Login error:', error)
-        this.error = error.message
+        console.error('Login error:', error);
+        this.error = error.message;
         throw error;
       } finally {
         this.loading = false;
@@ -164,62 +225,61 @@ export const useAuthStore = defineStore('auth', {
         console.error('Error loading user profile in background:', error);
       }
     },
-
+    
     // Make sure logout clears localStorage
     async logout() {
       try {
-        await signOut(auth)
-        this.user = null
-        localStorage.removeItem('userIsAdmin')
-        localStorage.removeItem('userData')
-        router.push('/')
+        await signOut(auth);
+        this.user = null;
+        localStorage.removeItem('userIsAdmin');
+        localStorage.removeItem('userData');
+        router.push('/');
       } catch (e) {
-        this.error = e.message
-        throw e
+        this.error = e.message;
+        throw e;
       }
     },
-
+    
     async register(email, password, userData) {
       try {
-        this.error = null
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        this.error = null;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
         // Create user profile in Firestore
         if (userData) {
-          await firebaseService.createUserProfile(userCredential.user.uid, userData)
+          await firebaseService.createUserProfile(userCredential.user.uid, userData);
         }
         
-        router.push('/')
-        return userCredential
+        router.push('/');
+        return userCredential;
       } catch (e) {
-        this.error = e.message
-        throw e
+        this.error = e.message;
+        throw e;
       }
     },
-
+    
     async setUser(userData) {
       if (userData) {
         // Get the complete user profile including admin status
-        const userProfile = await firebaseService.getUserProfile(userData.uid)
-        console.log('User profile loaded:', userProfile)
+        const userProfile = await firebaseService.getUserProfile(userData.uid);
+        console.log('User profile loaded:', userProfile);
         
         this.user = {
           ...userData,
           isAdmin: Boolean(userProfile?.isAdmin),
           ...userProfile
-        }
-        console.log('Updated user state:', this.user)
+        };
+        console.log('Updated user state:', this.user);
       } else {
-        this.user = null
+        this.user = null;
       }
     },
-
+    
     async restoreSession(firebaseUser) {
-      if (!firebaseUser) return null
-
+      if (!firebaseUser) return null;
       try {
         // Get fresh user profile data
-        const userProfile = await firebaseService.getUserProfile(firebaseUser.uid)
+        const userProfile = await firebaseService.getUserProfile(firebaseUser.uid);
         
         this.user = {
           uid: firebaseUser.uid,
@@ -227,33 +287,27 @@ export const useAuthStore = defineStore('auth', {
           displayName: firebaseUser.displayName,
           isAdmin: Boolean(userProfile?.isAdmin),
           ...userProfile
-        }
-
+        };
         // Update localStorage
         if (this.user.isAdmin) {
-          localStorage.setItem('userIsAdmin', 'true')
+          localStorage.setItem('userIsAdmin', 'true');
         }
-
-        return this.user
+        return this.user;
       } catch (error) {
-        console.error('Error restoring session:', error)
-        return null
+        console.error('Error restoring session:', error);
+        return null;
       }
-    },
-
-    // Make sure this getter is properly defined and used
-    getIsLoading() {
-      return this.loading;
     }
   },
   getters: {
     isAdmin: (state) => {
-      console.log('Checking isAdmin:', state.user?.isAdmin)
-      return Boolean(state.user?.isAdmin)
+      return Boolean(state.user?.isAdmin);
     },
-    isAuthenticated() {
-      return !!this.user;
+    isAuthenticated: (state) => {
+      return Boolean(state.user);
     },
-    isAuthenticated: (state) => !!state.user
+    getUser: (state) => {
+      return state.user;
+    }
   }
-})
+});

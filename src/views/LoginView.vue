@@ -35,11 +35,8 @@ const handleLogin = async () => {
     // Show immediate feedback that login is in progress
     loginStatus.value = 'Signing in...';
     
-    // Call login and get the redirect path
-    const redirectPath = await authStore.login({
-      email: email.value,
-      password: password.value
-    });
+    // Call login with correct parameters - passing email and password directly
+    const redirectPath = await authStore.login(email.value, password.value);
     
     // Show navigation in progress
     loginStatus.value = 'Redirecting...';
@@ -50,7 +47,6 @@ const handleLogin = async () => {
     console.error('Login error:', error);
     errorMsg.value = error.message || 'Failed to sign in. Please check your credentials.';
     loginStatus.value = '';
-    loading.value = false;
   } finally {
     loading.value = false;
   }
