@@ -581,7 +581,7 @@ export const firebaseService = {
     }
   },
 
-  // Get all orders for admin
+  // Get all orders for admin with user details
   async getAllOrders() {
     try {
       const ordersRef = collection(db, 'orders');
@@ -599,12 +599,63 @@ export const firebaseService = {
         querySnapshot = await getDocs(ordersRef);
       }
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        orderNumber: doc.data().orderNumber || `ORD-${doc.id.substring(0, 6)}`,
-        status: doc.data().status || 'processing'
+      // Get all orders and fetch product details for each order item
+      const orders = await Promise.all(querySnapshot.docs.map(async doc => {
+        const orderData = doc.data();
+        let userEmail = orderData.email;
+        let userName = '';
+        
+        // If we have userId, get user profile for complete details
+        if (orderData.userId) {
+          try {
+            const userProfile = await this.getUserProfile(orderData.userId);
+            userEmail = userEmail || userProfile?.email;
+            if (userProfile?.firstName || userProfile?.lastName) {
+              userName = `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim();
+            }
+          } catch (error) {
+            console.warn(`Could not fetch details for user ${orderData.userId}:`, error);
+          }
+        }
+
+        // If we have firstName/lastName in order data, use that
+        if (orderData.firstName || orderData.lastName) {
+          userName = `${orderData.firstName || ''} ${orderData.lastName || ''}`.trim();
+        }
+
+        // Fetch complete product details for each order item
+        let items = [];
+        if (Array.isArray(orderData.items)) {
+          items = await Promise.all(orderData.items.map(async item => {
+            if (item.productId) {
+              try {
+                const productDetails = await this.getProduct(item.productId);
+                return {
+                  ...item,
+                  name: productDetails.name || item.name || 'Product Not Found',
+                  image: productDetails.images?.[0] || item.image || '/assets/placeholder.jpg'
+                };
+              } catch (error) {
+                console.warn(`Could not fetch product details for ${item.productId}:`, error);
+                return item;
+              }
+            }
+            return item;
+          }));
+        }
+
+        return {
+          id: doc.id,
+          ...orderData,
+          items: items,
+          customerName: userName || 'N/A',
+          email: userEmail || 'N/A',
+          orderNumber: orderData.orderNumber || `ORD-${doc.id.substring(0, 6)}`,
+          status: orderData.status || 'processing'
+        };
       }));
+
+      return orders;
     } catch (error) {
       console.error('Error getting all orders:', error);
       return [];
