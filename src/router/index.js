@@ -222,6 +222,19 @@ router.beforeEach(async (to, from, next) => {
   next();
 });
 
+// Make sure navigation guards properly check auth status
+router.beforeEach((to, from, next) => {
+  // Get the authentication state from your auth store or service
+  const isAuthenticated = useAuthStore().user !== null;
+  
+  // If route requires auth and user is not authenticated
+  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
+    next({ name: 'login', query: { redirect: to.fullPath }});
+  } else {
+    next();
+  }
+});
+
 // Helper function to check if user is an admin
 function isUserAdmin(user) {
   if (!user) return false;
