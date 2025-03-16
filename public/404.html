@@ -21,12 +21,16 @@
         
         log(`Handling navigation to: ${path}${search}${hash}`);
         
-        // Store the route in session storage (more reliable for navigation)
+        // Skip redirect for asset files
+        if (path.match(/\.(js|css|png|jpe?g|gif|svg|ico|map)$/i)) {
+          log('Asset file detected, not redirecting');
+          return;
+        }
+        
+        // Store the route in session storage
         sessionStorage.setItem('spaPath', path);
         sessionStorage.setItem('spaSearch', search);
         sessionStorage.setItem('spaHash', hash);
-        
-        // Set a timestamp with a longer validity period (60 seconds)
         sessionStorage.setItem('spaNavTimestamp', Date.now().toString());
         
         log('Route information saved to session storage');
@@ -36,7 +40,6 @@
         window.location.replace(window.location.origin);
       } catch (error) {
         console.error('[SPA Router] Navigation error:', error);
-        // Fallback to homepage on error
         window.location.replace(window.location.origin);
       }
     })();

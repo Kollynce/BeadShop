@@ -23,26 +23,31 @@ const handleSpaNavigation = () => {
   const savedSearch = sessionStorage.getItem('spaSearch') || '';
   const savedHash = sessionStorage.getItem('spaHash') || '';
   
-  // Clear navigation data immediately
+  // Only proceed if we have necessary data
+  if (!savedPath || !timestamp) {
+    return; // No data to process
+  }
+  
+  console.log(`SPA Navigation: Found saved path ${savedPath}${savedSearch}${savedHash}`);
+  
+  // Clear navigation data immediately to prevent loops
   sessionStorage.removeItem('spaNavTimestamp');
   sessionStorage.removeItem('spaPath');
   sessionStorage.removeItem('spaSearch');
   sessionStorage.removeItem('spaHash');
   
-  // Verify we have valid data and it's recent (within last minute)
-  if (savedPath && timestamp && (Date.now() - parseInt(timestamp)) < 60000) {
+  // Verify it's recent (within last minute)
+  if ((Date.now() - parseInt(timestamp)) < 60000) {
     const fullPath = savedPath + savedSearch + savedHash;
     
-    console.log(`SPA Navigation: Found saved path ${fullPath}`);
-    
-    if (router.currentRoute.value.fullPath === '/') {
-      console.log(`SPA Navigation: Setting up redirect to ${fullPath}`);
-      // Set up the redirect
-      window.__spaRedirectInProgress = true;
-      window.__spaRedirectPath = fullPath;
+    // Don't redirect if we're already at the right place
+    if (window.location.pathname !== savedPath) {
+      console.log(`SPA Navigation: Redirecting to ${fullPath}`);
       
-      // Force a navigation to trigger the guard
-      router.replace('/').catch(e => console.error(e));
+      // Use direct router navigation instead of the complex setup
+      router.replace(fullPath).catch(err => {
+        console.error('SPA Navigation error:', err);
+      });
     }
   }
 };
