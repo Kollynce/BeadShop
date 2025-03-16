@@ -52,28 +52,33 @@ const handleSpaNavigation = () => {
   }
 };
 
-// Initialize the application
+// Improve the initialization sequence
 const initApp = async () => {
-  // Initialize auth store before anything else
+  // Initialize auth store first thing
   const authStore = useAuthStore();
+  
+  console.log('Starting app initialization');
+  
   try {
-    await authStore.initAuth();
-    console.log('Auth state initialized at app start:', authStore.user ? 'logged in' : 'not logged in');
+    // Initialize auth synchronously to block until complete
+    const authResult = await authStore.initAuth();
+    console.log(`Auth initialization complete: ${authResult ? 'User loaded' : 'No user'}`);
   } catch (error) {
-    console.error('Error initializing auth:', error);
+    console.error('Auth initialization error:', error);
   }
   
-  // Wait for router to be ready before mounting
+  // Wait for router to be ready
   await router.isReady();
+  console.log('Router is ready');
   
   // Mount the app
   app.mount('#app');
-  console.log('App mounted, checking for SPA navigation');
+  console.log('App mounted');
   
-  // Handle SPA navigation after app is mounted
+  // Give a moment for component initialization before handling SPA navigation
   setTimeout(() => {
     handleSpaNavigation();
-  }, 0);
+  }, 50);
 };
 
 // Start the app

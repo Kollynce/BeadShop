@@ -29,13 +29,20 @@ export const useAuthStore = defineStore('auth', {
         if (userData) {
           try {
             const parsedData = JSON.parse(userData);
-            console.log('Restored auth from localStorage:', 
-              parsedData ? 'found user data' : 'no user data');
+            console.log(`Restored auth from localStorage: ${parsedData?.email || 'unknown'}`);
             
             // Only set if we have valid user data with uid
             if (parsedData && parsedData.uid) {
               this.user = parsedData;
-              console.log('User authenticated from localStorage');
+              
+              // Important: set loading to false to indicate auth is ready
+              this.loading = false;
+              
+              // If admin status is stored separately, ensure it's consistent
+              if (localStorage.getItem('userIsAdmin') && !this.user.isAdmin) {
+                this.user.isAdmin = true;
+              }
+              
               return true;
             }
           } catch (parseError) {
@@ -43,12 +50,14 @@ export const useAuthStore = defineStore('auth', {
           }
         }
         
-        console.log('No valid user data in localStorage');
+        // No valid user data found
+        this.loading = false;
         return false;
       } catch (error) {
         console.error('Error in auth initialization:', error);
         localStorage.removeItem('userData');
         this.user = null;
+        this.loading = false;
         return false;
       }
     },
@@ -208,6 +217,11 @@ export const useAuthStore = defineStore('auth', {
         console.error('Error restoring session:', error)
         return null
       }
+    },
+
+    // Make sure this getter is properly defined and used
+    getIsLoading() {
+      return this.loading;
     }
   },
   getters: {

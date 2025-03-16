@@ -36,12 +36,13 @@ const handleLogin = async () => {
     // Show navigation in progress
     loginStatus.value = 'Redirecting...';
     
-    // Navigate to the redirect path
-    router.push(redirectPath);
+    // Navigate to the redirect path using replace for cleaner history
+    router.replace(redirectPath);
   } catch (error) {
     console.error('Login error:', error);
     errorMsg.value = error.message || 'Failed to sign in. Please check your credentials.';
     loginStatus.value = '';
+    loading.value = false;
   } finally {
     loading.value = false;
   }

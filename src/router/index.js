@@ -159,52 +159,58 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-// 2. Authentication Guard with enhanced retry
+// Replace the authentication guard with this improved version
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  
-  // Check if this is a reloaded page with a saved path
-  const isSpaReload = sessionStorage.getItem('spaPath') !== null;
   const isAuthRequiredRoute = to.meta.requiresAuth === true;
   
-  // Always restore auth state first on initial load
+  // Check for saved path to identify SPA reloads
+  const isSpaReload = sessionStorage.getItem('spaPath') !== null;
+  
+  console.log(`Navigation: ${from.path} → ${to.path} (Auth required: ${isAuthRequiredRoute})`);
+  console.log(`Auth state: ${authStore.user ? 'Logged in' : 'Not logged in'}`);
+  
+  // On first load or if user isn't available yet
   if (!authStore.user) {
     try {
-      await authStore.initAuth();
-      console.log('Auth state initialized in router guard:', authStore.user ? 'logged in' : 'not logged in');
+      console.log('Auth not initialized yet, initializing...');
+      const initialized = await authStore.initAuth();
+      console.log(`Auth initialization result: ${initialized ? 'success' : 'no user found'}`);
     } catch (err) {
-      console.error('Auth initialization error:', err);
+      console.error('Error initializing auth:', err);
     }
   }
   
-  // For auth-required routes, add a small delay to ensure localStorage is processed
-  if (isAuthRequiredRoute && !from.name) {
-    console.log('Auth-required route accessed directly, ensuring auth is initialized');
-    await new Promise(resolve => setTimeout(resolve, 100));
+  // For auth-required routes on direct access or SPA reload, ensure auth is fully processed
+  if (isAuthRequiredRoute && (!from.name || isSpaReload)) {
+    console.log('Protected route accessed directly, ensuring auth is initialized');
     
-    // Try one more time to restore auth if needed
+    // Double-check auth from localStorage with a small delay
+    await new Promise(resolve => setTimeout(resolve, 150));
+    
     if (!authStore.user) {
+      // One last attempt to restore auth
       await authStore.initAuth();
+      console.log(`Final auth check: ${authStore.user ? 'User found' : 'No user'}`);
     }
   }
   
-  // Handle authentication requirements
+  // After ensuring auth state is properly loaded, check requirements
   if (isAuthRequiredRoute && !authStore.user) {
-    console.log(`Auth required for ${to.path}, redirecting to login`); // Fixed missing closing bracket
-    // Save the intended destination for post-login redirect
+    console.log(`Auth required for ${to.path}, redirecting to login`);
     sessionStorage.setItem('redirectAfterLogin', to.fullPath);
     next('/login');
     return;
   }
   
-  // Handle admin requirements
+  // Check admin requirements
   if (to.meta.isAdmin && (!authStore.user || !authStore.user.isAdmin)) {
-    console.log('Admin access denied, redirecting to home');
+    console.log('Admin access denied');
     next('/');
     return;
   }
   
-  // Handle already logged in users trying to access login page
+  // Redirect already logged-in users away from login page
   if (to.path === '/login' && authStore.user) {
     const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
     sessionStorage.removeItem('redirectAfterLogin');
