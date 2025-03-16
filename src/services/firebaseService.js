@@ -132,6 +132,52 @@ export const firebaseService = {
     }
   },
 
+  // Add this new method before the Order operations section
+  async submitVariantRequest(requestData) {
+    try {
+      const variantRequestsRef = collection(db, 'variantRequests');
+      
+      // Prepare the request data with timestamps and status
+      const completeRequest = {
+        productId: requestData.productId,
+        productName: requestData.productName,
+        suggestion: requestData.suggestion,
+        requestedColors: requestData.colors || [],
+        userId: requestData.userId || null,
+        userEmail: requestData.userEmail || 'Anonymous',
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(variantRequestsRef, completeRequest);
+      return {
+        id: docRef.id,
+        ...completeRequest
+      };
+    } catch (error) {
+      console.error('Error submitting variant request:', error);
+      throw error;
+    }
+  },
+
+  // Get all variant requests for admin
+  async getVariantRequests() {
+    try {
+      const requestsRef = collection(db, 'variantRequests');
+      const q = query(requestsRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting variant requests:', error);
+      throw error;
+    }
+  },
+
   // Product operations
   async getProducts() {
     try {
