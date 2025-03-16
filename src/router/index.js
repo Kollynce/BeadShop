@@ -163,7 +163,10 @@ router.beforeEach((to, from, next) => {
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   
-  // Restore auth first if needed
+  // Check if this is a reloaded page with a saved path
+  const isSpaReload = sessionStorage.getItem('spaPath') !== null;
+  
+  // Always restore auth state first on initial load
   if (!authStore.user) {
     try {
       await authStore.initAuth();
@@ -173,9 +176,17 @@ router.beforeEach(async (to, from, next) => {
     }
   }
   
+  // Add a short delay on reload to ensure auth has time to restore from localStorage
+  if (isSpaReload && !from.name) {
+    console.log('SPA reload detected, allowing extra time for auth restoration');
+    // Add a small delay to make sure localStorage auth is fully processed
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  
   // Handle authentication requirements
   if (to.meta.requiresAuth && !authStore.user) {
     console.log(`Auth required for ${to.path}, redirecting to login`);
+    // Save the intended destination for post-login redirect
     sessionStorage.setItem('redirectAfterLogin', to.fullPath);
     next('/login');
     return;

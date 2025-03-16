@@ -21,19 +21,35 @@ export const useAuthStore = defineStore('auth', {
     // Add or update the initAuth method
     async initAuth() {
       console.log('Initializing auth state');
-      if (this.user) return;
       
       try {
         // Try to get user data from localStorage
         const userData = localStorage.getItem('userData');
+        
         if (userData) {
-          this.user = JSON.parse(userData);
-          console.log('Restored auth from localStorage');
+          try {
+            const parsedData = JSON.parse(userData);
+            console.log('Restored auth from localStorage:', 
+              parsedData ? 'found user data' : 'no user data');
+            
+            // Only set if we have valid user data with uid
+            if (parsedData && parsedData.uid) {
+              this.user = parsedData;
+              console.log('User authenticated from localStorage');
+              return true;
+            }
+          } catch (parseError) {
+            console.error('Error parsing stored user data:', parseError);
+          }
         }
+        
+        console.log('No valid user data in localStorage');
+        return false;
       } catch (error) {
-        console.error('Error restoring auth:', error);
+        console.error('Error in auth initialization:', error);
         localStorage.removeItem('userData');
         this.user = null;
+        return false;
       }
     },
     
