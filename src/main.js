@@ -4,25 +4,113 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 import { imageErrorDirective } from './utils/imageUtils'
+import { useAuthStore } from './stores/auth'
 
-// Handle GitHub Pages redirect from 404.html
-// Check if we're being redirected from the 404 page with path info
-const redirectedQuery = window.location.search.match(/[?&]p=(.*)(?:&|$)/)
-if (redirectedQuery) {
-  // Get the path from the query parameter and use it for routing
-  const path = redirectedQuery[1]
+// Initialize app with pinia first for store access
+const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia);
+app.use(router);
+
+// Register custom directive
+app.directive('img-fallback', imageErrorDirective);
+
+// Simple SPA navigation handler
+const handleSpaNavigation = () => {
+  // Check if we have a saved path
+  const timestamp = sessionStorage.getItem('spaNavTimestamp');
+  const savedPath = sessionStorage.getItem('spaPath');
+  const savedSearch = sessionStorage.getItem('spaSearch') || '';
+  const savedHash = sessionStorage.getItem('spaHash') || '';
   
-  // Create a clean URL by replacing the current history state
-  window.history.replaceState(null, null, 
-    import.meta.env.BASE_URL + path)
+  // Only proceed if we have necessary data
+  if (!savedPath || !timestamp) {
+    return; // No data to process
+  }
+  
+  console.log(`SPA Navigation: Found saved path ${savedPath}${savedSearch}${savedHash}`);
+  
+  // Clear navigation data immediately to prevent loops
+  sessionStorage.removeItem('spaNavTimestamp');
+  sessionStorage.removeItem('spaPath');
+  sessionStorage.removeItem('spaSearch');
+  sessionStorage.removeItem('spaHash');
+  
+  // Verify it's recent (within last minute)
+  if ((Date.now() - parseInt(timestamp)) < 60000) {
+    const fullPath = savedPath + savedSearch + savedHash;
+    
+    // Don't redirect if we're already at the right place
+    if (window.location.pathname !== savedPath) {
+      console.log(`SPA Navigation: Redirecting to ${fullPath}`);
+      
+      // Use direct router navigation instead of the complex setup
+      router.replace(fullPath).catch(err => {
+        console.error('SPA Navigation error:', err);
+      });
+    }
+  }
+};
+
+// Improve the initialization sequence
+const initApp = async () => {
+  // Initialize auth store first thing
+  const authStore = useAuthStore();
+  
+  console.log('Starting app initialization');
+  
+  try {
+    // Initialize auth synchronously to block until complete
+    const authResult = await authStore.initAuth();
+    console.log(`Auth initialization complete: ${authResult ? 'User loaded' : 'No user'}`);
+  } catch (error) {
+    console.error('Auth initialization error:', error);
+  }
+  
+  // Wait for router to be ready
+  await router.isReady();
+  console.log('Router is ready');
+  
+  // Mount the app
+  app.mount('#app');
+  console.log('App mounted');
+  
+  // Give a moment for component initialization before handling SPA navigation
+  setTimeout(() => {
+    handleSpaNavigation();
+  }, 50);
+};
+
+// Start the app
+initApp().catch(err => {
+  console.error('App initialization error:', err);
+});
+
+async function initializeApp() {
+  console.log('Starting app initialization');
+  
+  const app = createApp(App);
+  
+  // Setup stores
+  app.use(createPinia()); // or however you set up your store
+  
+  // Get auth store and initialize it
+  const authStore = useAuthStore();
+  await authStore.initialize();
+  console.log('Auth initialization complete:', authStore.user ? 'User found' : 'No user');
+  
+  // Setup router
+  app.use(router);
+  
+  // Wait for router to be ready
+  await router.isReady();
+  console.log('Router is ready');
+  
+  // Mount the app
+  app.mount('#app');
+  console.log('App mounted');
 }
 
-const app = createApp(App)
-
-app.use(createPinia())
-app.use(router)
-
-// Register the custom directive
-app.directive('img-fallback', imageErrorDirective)
-
-app.mount('#app')
+initializeApp().catch(error => {
+  console.error('Failed to initialize app:', error);
+});

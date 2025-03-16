@@ -47,6 +47,32 @@ onMounted(async () => {
       authStore.logout()
     }
   })
+
+  // Detect user-initiated clicks on links
+  document.addEventListener('click', event => {
+    // Check if it's a link click
+    const link = event.target.closest('a');
+    if (link && link.href && (
+      link.href.includes(window.location.origin + '/') || 
+      link.getAttribute('href') === '/'
+    )) {
+      // Mark this as a user-initiated navigation
+      window.__navIsUserAction = true;
+      console.log('User clicked a link:', link.href);
+      // Reset the flag after navigation completes (in case navigation doesn't happen)
+      setTimeout(() => { window.__navIsUserAction = false; }, 500);
+    }
+  });
+
+  // Detect user-initiated navigation to home
+  document.addEventListener('click', event => {
+    const link = event.target.closest('a[href="/"]');
+    if (link) {
+      console.log('User clicked home link, marking as user action');
+      // Mark as intentional navigation
+      window.__navIsUserAction = true;
+    }
+  });
 })
 </script>
 

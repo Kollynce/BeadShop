@@ -19,6 +19,7 @@ import AdminProductForm from '../views/AdminProductForm.vue'
 import AdminOrders from '../views/AdminOrders.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
 
+// Make sure the router instance is configured correctly
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -111,36 +112,87 @@ const router = createRouter({
       component: AdminUsersView,
       meta: { requiresAuth: true, isAdmin: true },
       beforeEnter: requireAdmin
+    },
+    // Catch-all route - must be last
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: HomeView,
+      beforeEnter: (to, from, next) => {
+        console.log(`Not-found route triggered for: ${to.fullPath}`);
+        
+        // Check if this is a GitHub Pages SPA redirect
+        if (to.query && Object.keys(to.query).length > 0 && to.query[0]?.startsWith('/')) {
+          console.log('Detected GitHub Pages SPA redirect, handling specially');
+          // Let the GitHub Pages redirect script handle it
+          next(false);
+          return;
+        }
+        
+        // Regular 404, go to home
+        next('/');
+      }
     }
   ],
-  // Ensure trailing slashes are handled correctly
-  strict: false
-})
-
-// Add a catch-all route for GitHub Pages 404 handling
-router.addRoute({
-  path: '/:pathMatch(.*)*',
-  redirect: '/'
-})
-
-// Navigation guard for protected routes
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  
-  if (to.meta.requiresAuth && !authStore.user) {
-    next('/login')
-  } else if (to.meta.isAdmin && !isUserAdmin(authStore.user)) {
-    // Redirect non-admin users trying to access admin pages
-    next('/')
-  } else {
-    next()
+  strict: true, // Enable strict mode for better path matching
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0 };
+    }
   }
 })
 
-// Helper function to check if user is an admin
-function isUserAdmin(user) {
-  if (!user) return false
-  return user.isAdmin === true
-}
+// Clean up navigation guards - we need just one primary guard
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+  
+  // Skip auth checking for GitHub Pages SPA redirects
+  if (window.location.search && window.location.search.startsWith('?/')) {
+    console.log('GitHub Pages redirect in progress, skipping auth check');
+    next();
+    return;
+  }
+
+  // Try to initialize auth if not already done
+  if (!authStore.user && !authStore.authChecked) {
+    try {
+      console.log('Initializing auth...');
+      await authStore.initAuth();
+    } catch (err) {
+      console.error('Error initializing auth:', err);
+    }
+  }
+  
+  // Check if route requires authentication
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!authStore.isAuthenticated) {
+      console.log(`Auth required for ${to.path}, redirecting to login`);
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      });
+      return;
+    }
+    
+    // Check for admin routes
+    if (to.matched.some(record => record.meta.isAdmin) && !authStore.isAdmin) {
+      console.log('Admin access denied');
+      next('/');
+      return;
+    }
+  }
+  
+  // Redirect already logged-in users away from login page
+  if ((to.path === '/login' || to.path === '/register') && authStore.isAuthenticated) {
+    const redirectPath = to.query.redirect || '/account';
+    console.log(`Already logged in, redirecting to ${redirectPath}`);
+    next(redirectPath);
+    return;
+  }
+  
+  next();
+});
 
 export default router

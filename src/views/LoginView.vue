@@ -1,29 +1,54 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ExclamationCircleIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/vue/20/solid'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const email = ref('')
 const password = ref('')
 const errorMsg = ref('')
 const loading = ref(false)
+const loginStatus = ref('')
 
-const handleSubmit = async () => {
-  errorMsg.value = ''
-  loading.value = true
-  
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    const redirectPath = route.query.redirect || '/account';
+    router.replace(redirectPath);
+  }
+});
+
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    errorMsg.value = 'Please enter both email and password.';
+    return;
+  }
+
   try {
-    await authStore.login(email.value, password.value)
-    router.push('/')
+    loading.value = true;
+    errorMsg.value = null;
+    
+    // Show immediate feedback that login is in progress
+    loginStatus.value = 'Signing in...';
+    
+    // Call login with correct parameters - passing email and password directly
+    const redirectPath = await authStore.login(email.value, password.value);
+    
+    // Show navigation in progress
+    loginStatus.value = 'Redirecting...';
+    
+    // Navigate to the redirect path using replace for cleaner history
+    router.replace(redirectPath);
   } catch (error) {
-    errorMsg.value = error.message || 'Failed to login. Please try again.'
+    console.error('Login error:', error);
+    errorMsg.value = error.message || 'Failed to sign in. Please check your credentials.';
+    loginStatus.value = '';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -52,7 +77,7 @@ const handleSubmit = async () => {
           </div>
         </TransitionRoot>
         
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form @submit.prevent="handleLogin" class="space-y-6">
           <div>
             <label for="email" class="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary">Email address</label>
             <div class="mt-1 relative rounded-md shadow-sm">
@@ -108,7 +133,7 @@ const handleSubmit = async () => {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              {{ loading ? 'Signing in...' : 'Sign in' }}
+              {{ loading ? loginStatus : 'Sign in' }}
             </button>
           </div>
         </form>
