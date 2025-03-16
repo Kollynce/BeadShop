@@ -1,7 +1,12 @@
 module.exports = {
   // ...existing code...
+  
+  // This is important for GitHub Pages to work with Vue Router
   publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
-  // For GitHub Pages, you might need to set this to your repo name if not using a custom domain
-  // publicPath: process.env.NODE_ENV === 'production' ? '/your-repo-name/' : '/',
+  
+  // If you're using a custom domain, leave publicPath as '/'
+  // If you're using GitHub's default domain (username.github.io/repo-name),
+  // then set publicPath to '/repo-name/'
+  
   // ...existing code...
 }

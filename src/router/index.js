@@ -19,6 +19,7 @@ import AdminProductForm from '../views/AdminProductForm.vue'
 import AdminOrders from '../views/AdminOrders.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
 
+// Make sure the router instance is configured correctly
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -139,6 +140,27 @@ const router = createRouter({
     }
   }
 })
+
+// Add navigation guards to properly handle auth state
+router.beforeEach((to, from, next) => {
+  // Get the current auth state - adapt this to your auth system
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  
+  // Check if the route requires authentication
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isAuthenticated) {
+      // Save the intended destination for redirect after login
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+});
 
 // REMOVE all existing navigation guards
 // Only keep these two simple guards:
