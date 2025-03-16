@@ -53,49 +53,87 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Update the login method to handle redirect
+    // Update the login method to be more efficient
     async login(email, password) {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password)
-        const userData = await firebaseService.getUserProfile(userCredential.user.uid)
+        // Set loading state
+        this.loading = true;
+        this.error = null;
+    
+        // First get user credentials - this is the critical path
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         
-        // Initialize admin status if needed
-        if (!userData?.adminUpdatedAt) {
-          await adminSetup.initializeAdminStatus()
-        }
-        
-        // Get fresh user data after potential admin setup
-        const updatedUserData = await firebaseService.getUserProfile(userCredential.user.uid)
-        
+        // Set basic user data immediately for faster UI response
         this.user = {
-          ...userCredential.user,
-          ...updatedUserData,
-          isAdmin: Boolean(updatedUserData?.isAdmin)
-        }
-
-        // Store admin status in localStorage for persistence
-        if (this.user.isAdmin) {
-          localStorage.setItem('userIsAdmin', 'true')
-        }
-
-        // After successful login, store user in localStorage
-        if (this.user) {
-          localStorage.setItem('userData', JSON.stringify(this.user));
-          
-          // Handle redirect after login
-          const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
-          console.log(`Login successful, will redirect to: ${redirectPath}`);
-          sessionStorage.removeItem('redirectAfterLogin');
-          return redirectPath;
-        }
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          // Set a default non-admin status initially
+          isAdmin: false
+        };
         
-        return '/account'; // Default redirect
+        // Store this basic data immediately
+        localStorage.setItem('userData', JSON.stringify(this.user));
+        
+        // Calculate redirect path early so we can return it
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
+        sessionStorage.removeItem('redirectAfterLogin');
+        
+        // Load additional profile data in the background
+        this.loadUserProfileInBackground(userCredential.user.uid);
+        
+        return redirectPath;
       } catch (error) {
         console.error('Login error:', error)
-        throw error
+        this.error = error.message
+        throw error;
+      } finally {
+        this.loading = false;
       }
     },
     
+    // New method to load user profile in the background
+    async loadUserProfileInBackground(userId) {
+      try {
+        // Get user profile data
+        const userData = await firebaseService.getUserProfile(userId);
+        
+        // Initialize admin status if needed - this can happen after redirect
+        if (!userData?.adminUpdatedAt) {
+          await adminSetup.initializeAdminStatus();
+          
+          // Get fresh user data after potential admin setup
+          const updatedUserData = await firebaseService.getUserProfile(userId);
+          
+          // Update user data with admin status
+          this.user = {
+            ...this.user,
+            ...updatedUserData,
+            isAdmin: Boolean(updatedUserData?.isAdmin)
+          };
+        } else {
+          // Just update with existing data
+          this.user = {
+            ...this.user,
+            ...userData,
+            isAdmin: Boolean(userData?.isAdmin)
+          };
+        }
+        
+        // Update localStorage with complete data
+        localStorage.setItem('userData', JSON.stringify(this.user));
+        
+        // Store admin status separately for quick checks
+        if (this.user.isAdmin) {
+          localStorage.setItem('userIsAdmin', 'true');
+        }
+        
+        console.log('User profile loaded in background');
+      } catch (error) {
+        console.error('Error loading user profile in background:', error);
+      }
+    },
+
     // Make sure logout clears localStorage
     async logout() {
       try {

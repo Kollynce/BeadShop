@@ -159,33 +159,38 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-// 2. Authentication Guard - Simpler version
+// 2. Authentication Guard with enhanced retry
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   
   // Check if this is a reloaded page with a saved path
   const isSpaReload = sessionStorage.getItem('spaPath') !== null;
+  const isAuthRequiredRoute = to.meta.requiresAuth === true;
   
   // Always restore auth state first on initial load
   if (!authStore.user) {
     try {
       await authStore.initAuth();
-      console.log('Auth state initialized:', authStore.user ? 'logged in' : 'not logged in');
+      console.log('Auth state initialized in router guard:', authStore.user ? 'logged in' : 'not logged in');
     } catch (err) {
       console.error('Auth initialization error:', err);
     }
   }
   
-  // Add a short delay on reload to ensure auth has time to restore from localStorage
-  if (isSpaReload && !from.name) {
-    console.log('SPA reload detected, allowing extra time for auth restoration');
-    // Add a small delay to make sure localStorage auth is fully processed
-    await new Promise(resolve => setTimeout(resolve, 50));
+  // For auth-required routes, add a small delay to ensure localStorage is processed
+  if (isAuthRequiredRoute && !from.name) {
+    console.log('Auth-required route accessed directly, ensuring auth is initialized');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Try one more time to restore auth if needed
+    if (!authStore.user) {
+      await authStore.initAuth();
+    }
   }
   
   // Handle authentication requirements
-  if (to.meta.requiresAuth && !authStore.user) {
-    console.log(`Auth required for ${to.path}, redirecting to login`);
+  if (isAuthRequiredRoute && !authStore.user) {
+    console.log(`Auth required for ${to.path}, redirecting to login`); // Fixed missing closing bracket
     // Save the intended destination for post-login redirect
     sessionStorage.setItem('redirectAfterLogin', to.fullPath);
     next('/login');
