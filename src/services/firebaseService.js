@@ -545,51 +545,38 @@ export const firebaseService = {
   async getUserOrders(userId) {
     try {
       const ordersRef = collection(db, 'orders');
+      const q = query(
+        ordersRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
       
-      // Use createdAt for consistent sorting (orderDate might be missing or inconsistent)
-      // If you haven't created the index yet, temporarily use a simpler query
-      let querySnapshot;
-      try {
-        const q = query(
-          ordersRef, 
-          where('userId', '==', userId),
-          orderBy('createdAt', 'desc')
-        );
-        querySnapshot = await getDocs(q);
-      } catch (indexError) {
-        // Fallback to a simpler query if index doesn't exist
-        console.warn('Index error, using fallback query:', indexError);
-        const q = query(
-          ordersRef, 
-          where('userId', '==', userId)
-        );
-        querySnapshot = await getDocs(q);
-      }
-      
-      if (querySnapshot.empty) {
-        console.log('No orders found for user:', userId);
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        console.log(`No orders found for user: ${userId}`);
         return [];
       }
       
-      return querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Order data:', doc.id, data); // Debug what's coming from Firestore
-        
-        return {
-          id: doc.id,
-          ...data,
-          // Format timestamps properly for display
-          orderDate: data.orderDate || data.createdAt || new Date(),
-          createdAt: data.createdAt || data.orderDate || new Date(),
-          orderNumber: data.orderNumber || `ORD-${doc.id.substring(0, 6)}`,
-          status: data.status || 'processing',
-          items: data.items || [],
-          total: data.total || 0
-        };
-      });
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
     } catch (error) {
-      console.error('Error getting user orders:', error);
-      return []; // Return empty array instead of throwing, better for UI
+      if (error.code === 'failed-precondition') {
+        // Create the composite index
+        console.warn('Creating required index for orders query...');
+        // Fallback to simple query
+        const simpleQuery = query(
+          ordersRef,
+          where('userId', '==', userId)
+        );
+        const snapshot = await getDocs(simpleQuery);
+        return snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+      throw error;
     }
   },
 

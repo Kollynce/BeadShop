@@ -415,6 +415,21 @@ const handleImageError = (event) => {
   };
 };
 
+const loadProduct = async () => {
+  try {
+    const productData = await getProduct(productId);
+    product.value = productData;
+    
+    if (productData.images && productData.images.length) {
+      currentImage.value = productData.images[0];
+    } else {
+      currentImage.value = defaultPlaceholderImage;
+    }
+  } catch (error) {
+    console.error('Error loading product:', error);
+  }
+};
+
 onMounted(fetchProduct)
 
 // Re-fetch when route params change

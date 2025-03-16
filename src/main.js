@@ -86,30 +86,20 @@ initApp().catch(err => {
   console.error('App initialization error:', err);
 });
 
-async function initializeApp() {
+let initialized = false;
+
+const initializeApp = async () => {
+  if (initialized) return;
   console.log('Starting app initialization');
   
-  const app = createApp(App);
+  await initAuth();
+  console.log('Auth initialization complete');
   
-  // Setup stores
-  app.use(createPinia()); // or however you set up your store
-  
-  // Get auth store and initialize it
-  const authStore = useAuthStore();
-  await authStore.initialize();
-  console.log('Auth initialization complete:', authStore.user ? 'User found' : 'No user');
-  
-  // Setup router
-  app.use(router);
-  
-  // Wait for router to be ready
   await router.isReady();
   console.log('Router is ready');
   
-  // Mount the app
-  app.mount('#app');
-  console.log('App mounted');
-}
+  initialized = true;
+};
 
 initializeApp().catch(error => {
   console.error('Failed to initialize app:', error);
