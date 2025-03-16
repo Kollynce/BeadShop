@@ -11,13 +11,35 @@ import { firebaseService } from '../services/firebaseService'
 import router from '../router'
 import { adminSetup } from '../utils/adminSetup'
 
+// Add a property to track initialization
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
+    isInitializing: true,
     loading: true,
     error: null
   }),
   actions: {
+    async initialize() {
+      console.log("Initializing auth state");
+      this.isInitializing = true;
+      
+      try {
+        // Your existing initialization logic
+        // e.g. check localStorage, Firebase, etc.
+        
+        // Example:
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          this.user = JSON.parse(savedUser);
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        this.isInitializing = false;
+      }
+    },
+    
     // Add or update the initAuth method
     async initAuth() {
       console.log('Initializing auth state');
@@ -228,6 +250,9 @@ export const useAuthStore = defineStore('auth', {
     isAdmin: (state) => {
       console.log('Checking isAdmin:', state.user?.isAdmin)
       return Boolean(state.user?.isAdmin)
+    },
+    isAuthenticated() {
+      return !!this.user;
     },
     isAuthenticated: (state) => !!state.user
   }

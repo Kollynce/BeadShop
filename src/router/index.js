@@ -244,6 +244,55 @@ router.beforeEach(async (to, from, next) => {
   next();
 });
 
+// Fix the infinite redirect loop
+router.beforeEach((to, from, next) => {
+  console.log(`Navigation: ${from.path} → ${to.path} (Auth required: ${to.meta.requiresAuth || false})`);
+  
+  // Get auth state from your auth service
+  const authStore = useAuthStore(); // Adjust this to how you access your auth store
+  const isLoggedIn = authStore.isAuthenticated;
+  
+  console.log(`Auth state: ${isLoggedIn ? 'Logged in' : 'Not logged in'}`);
+  
+  // Handle initialization if needed
+  if (authStore.isInitializing) {
+    console.log('Auth not initialized yet, initializing...');
+    // You might need to await authStore.initialize() here
+    // For now, let's continue without blocking
+  }
+
+  // Case 1: Route requires auth and user is not logged in
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    console.log('Auth required but not logged in, redirecting to login');
+    return next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    });
+  }
+  
+  // Case 2: Going to login page while already logged in
+  if (to.path === '/login' && isLoggedIn) {
+    // If there's a requested redirect, use it
+    if (to.query.redirect) {
+      console.log(`Already logged in, redirecting to ${to.query.redirect}`);
+      return next(to.query.redirect);
+    }
+    
+    // Otherwise redirect to account
+    console.log('Already logged in, redirecting to /account');
+    return next('/account');
+  }
+  
+  // Case 3: Detect potential redirect loops
+  if (from.path === '/account' && to.path === '/login' && isLoggedIn) {
+    console.log('Detected redirect loop, forcing to home page');
+    return next('/');
+  }
+  
+  // Default: allow navigation
+  return next();
+});
+
 // Make sure navigation guards properly check auth status
 router.beforeEach((to, from, next) => {
   // Get the authentication state from your auth store or service

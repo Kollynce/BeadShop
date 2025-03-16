@@ -1,18 +1,26 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ExclamationCircleIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/vue/20/solid'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const email = ref('')
 const password = ref('')
 const errorMsg = ref('')
 const loading = ref(false)
 const loginStatus = ref('')
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    const redirectPath = route.query.redirect || '/account';
+    router.replace(redirectPath);
+  }
+});
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
