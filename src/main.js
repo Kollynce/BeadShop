@@ -85,22 +85,3 @@ const initApp = async () => {
 initApp().catch(err => {
   console.error('App initialization error:', err);
 });
-
-let initialized = false;
-
-const initializeApp = async () => {
-  if (initialized) return;
-  console.log('Starting app initialization');
-  
-  await initAuth();
-  console.log('Auth initialization complete');
-  
-  await router.isReady();
-  console.log('Router is ready');
-  
-  initialized = true;
-};
-
-initializeApp().catch(error => {
-  console.error('Failed to initialize app:', error);
-});

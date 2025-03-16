@@ -566,6 +566,7 @@ export const firebaseService = {
         // Create the composite index
         console.warn('Creating required index for orders query...');
         // Fallback to simple query
+        const ordersRef = collection(db, 'orders'); // Added this line to fix the reference
         const simpleQuery = query(
           ordersRef,
           where('userId', '==', userId)
