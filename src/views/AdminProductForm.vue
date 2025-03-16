@@ -160,7 +160,9 @@
         <!-- Additional Details -->
         <div class="mb-6">
           <h2 class="text-lg font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Additional Details</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Materials & Dimensions -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label for="materials" class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Materials</label>
               <input 
@@ -171,7 +173,6 @@
                 class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary"
               >
             </div>
-            
             <div>
               <label for="dimensions" class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Dimensions</label>
               <input 
@@ -183,7 +184,51 @@
               >
             </div>
           </div>
-          
+
+          <!-- Product Details (Care, Sizing, Shipping, Returns) -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Care Instructions</label>
+              <textarea 
+                v-model="product.careInstructions" 
+                rows="4"
+                placeholder="Enter care instructions, one per line"
+                class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary resize-y"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Sizing & Fit</label>
+              <textarea 
+                v-model="product.sizingAndFit" 
+                rows="3"
+                placeholder="Enter sizing and fit information"
+                class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary resize-y"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Shipping Information</label>
+              <textarea 
+                v-model="product.shippingInfo" 
+                rows="2"
+                placeholder="Enter shipping information"
+                class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary resize-y"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Return Policy</label>
+              <textarea 
+                v-model="product.returnPolicy" 
+                rows="2"
+                placeholder="Enter return policy"
+                class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary resize-y"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Featured Product Toggle -->
           <div class="mt-4">
             <div class="flex items-center">
               <input 
@@ -197,6 +242,40 @@
               </label>
             </div>
           </div>
+        </div>
+        
+        <!-- New Variants Section -->
+        <div class="mb-6">
+          <h2 class="text-lg font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Variants</h2>
+          <div v-if="product.variants.length">
+            <ul class="mb-4">
+              <li v-for="(variant, index) in product.variants" :key="index" class="flex justify-between items-center">
+                <span>{{ variant.name }} &mdash; 
+                  <span v-for="(col, idx) in variant.colors" :key="idx" 
+                    class="inline-block w-4 h-4 rounded-full border border-light-neutral-300 dark:border-dark-neutral-600 mr-1"
+                    :style="{ backgroundColor: col }"></span>
+                </span>
+                <button type="button" @click="product.variants.splice(index, 1)" class="text-red-600">Remove</button>
+              </li>
+            </ul>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="variant-name" class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Variant Name</label>
+              <input type="text" id="variant-name" v-model="newVariantName" class="w-full p-2 border rounded" placeholder="e.g. White Beads & Black Strings">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Variant Colors</label>
+              <div class="flex items-center gap-2">
+                <div v-for="(color, index) in newVariantColors" :key="index" class="flex items-center gap-1">
+                  <input type="color" v-model="newVariantColors[index]" @input="updateVariantColor(index, $event)" class="w-10 h-10 p-0 border-0">
+                  <button type="button" @click="removeVariantColor(index)" class="text-red-600 text-xs">×</button>
+                </div>
+                <button type="button" @click="addNewVariantColor" class="px-2 py-1 bg-accent-quaternary hover:bg-accent-quaternary/90 text-white rounded text-xs">Add Color</button>
+              </div>
+            </div>
+          </div>
+          <button type="button" @click="addVariant" class="mt-3 bg-accent-quaternary hover:bg-accent-quaternary/90 text-white py-1 px-3 rounded-btn shadow-btn">Add Variant</button>
         </div>
         
         <div class="border-t border-light-neutral-300 dark:border-dark-neutral-700 pt-6 flex justify-end space-x-4">
@@ -271,7 +350,15 @@ const product = ref({
   images: [],
   featured: false,
   materials: '',
-  dimensions: ''
+  dimensions: '',
+  variants: [],
+  careInstructions: `Store in a cool, dry place away from direct sunlight
+Avoid contact with perfumes, lotions, and chemicals
+Clean gently with a soft, lint-free cloth
+Remove before swimming or bathing`,
+  sizingAndFit: 'Our standard bracelet length is 7.5 inches. Necklaces are available in 16, 18, and 20 inch lengths. Please contact us for custom sizing.',
+  shippingInfo: 'Handmade to order. Please allow 1-3 business days for production plus shipping time.',
+  returnPolicy: 'We accept returns within 14 days of delivery for unworn items in original packaging.'
 });
 
 const newImageUrl = ref('');
@@ -433,6 +520,33 @@ const saveProduct = async () => {
     error.value = err.message;
   } finally {
     isSaving.value = false;
+  }
+};
+
+const newVariantName = ref('');
+const newVariantColors = ref([]); // holds an array of color hex values
+
+const addNewVariantColor = () => {
+  // Add default white color on click
+  newVariantColors.value.push('#ffffff');
+};
+
+const updateVariantColor = (index, event) => {
+  newVariantColors.value[index] = event.target.value;
+};
+
+const removeVariantColor = (index) => {
+  newVariantColors.value.splice(index, 1);
+};
+
+const addVariant = () => {
+  if(newVariantName.value.trim() && newVariantColors.value.length){
+    product.value.variants.push({
+      name: newVariantName.value.trim(),
+      colors: [...newVariantColors.value]
+    });
+    newVariantName.value = '';
+    newVariantColors.value = [];
   }
 };
 </script>

@@ -185,10 +185,18 @@ export const firebaseService = {
       if (!productSnap.exists()) {
         throw new Error(`Product with ID: ${productId} not found`)
       }
-
+      
+      let data = productSnap.data();
+      // Use new default variant structure if missing
+      if (!data.variants) {
+        data.variants = [
+          { name: 'Default', colors: ['#ffffff', '#000000'] }
+        ];
+      }
+      
       return {
         id: productSnap.id,
-        ...productSnap.data()
+        ...data
       }
     } catch (error) {
       console.log(`Firebase: falling back to mock data for product ${productId}`)
@@ -199,30 +207,38 @@ export const firebaseService = {
   // New product management methods
   async createProduct(productData) {
     try {
-      const timestamp = serverTimestamp()
+      const timestamp = serverTimestamp();
       
-      // Clone product data to avoid modifying the original
-      const processedProduct = {...productData};
-      
-      // If the base64 images are too large, it might exceed Firestore document size limits
-      // You may need to split large base64 strings into separate documents if needed
-      
+      // Ensure all product sections have default values if not provided
+      const defaultProductData = {
+        materials: '',
+        dimensions: '',
+        careInstructions: `Store in a cool, dry place away from direct sunlight
+Avoid contact with perfumes, lotions, and chemicals
+Clean gently with a soft, lint-free cloth
+Remove before swimming or bathing`,
+        sizingAndFit: 'Our standard bracelet length is 7.5 inches. Necklaces are available in 16, 18, and 20 inch lengths. Please contact us for custom sizing.',
+        shippingInfo: 'Handmade to order. Please allow 1-3 business days for production plus shipping time.',
+        returnPolicy: 'We accept returns within 14 days of delivery for unworn items in original packaging.',
+        ...productData
+      };
+
       const completeProductData = {
-        ...processedProduct,
+        ...defaultProductData,
         createdAt: timestamp,
         updatedAt: timestamp
-      }
+      };
 
-      const productsRef = collection(db, 'products')
-      const docRef = await addDoc(productsRef, completeProductData)
+      const productsRef = collection(db, 'products');
+      const docRef = await addDoc(productsRef, completeProductData);
 
       return {
         id: docRef.id,
         ...completeProductData
-      }
+      };
     } catch (error) {
-      console.error('Error creating product:', error)
-      throw error
+      console.error('Error creating product:', error);
+      throw error;
     }
   },
 

@@ -21,7 +21,7 @@
           <h3 class="text-light-text-primary dark:text-dark-text-primary text-lg font-medium hover:text-accent-primary">{{ product.name }}</h3>
           <p class="text-light-text-secondary dark:text-dark-text-secondary text-sm">{{ product.category }}</p>
           <div class="mt-2 flex items-center justify-between">
-            <p class="text-lg font-medium text-light-text-primary dark:text-dark-text-primary">
+            <p class="text-lg font-medium text-accent-primary dark:text-white">
               {{ formatCurrency(product.price) }}
             </p>
           </div>
