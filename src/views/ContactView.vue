@@ -102,29 +102,31 @@
               </dl>
             </div>
 
-            <!-- Map card -->
+            <!-- Location card (replacing map) -->
             <div class="bg-light-primary dark:bg-dark-primary rounded-xl shadow-lg ring-1 ring-light-neutral-300 dark:ring-dark-neutral-700 overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div class="relative h-64">
-                <div id="map" ref="mapContainer" class="w-full h-full"></div>
+              <div class="p-8">
+                <h3 class="text-xl font-semibold leading-7 text-light-text-primary dark:text-dark-text-primary mb-6 flex items-center">
+                  <MapPinIcon class="h-6 w-6 text-accent-primary mr-2" />
+                  Our Location
+                </h3>
                 
-                <div v-if="mapLoading" class="absolute inset-0 flex items-center justify-center bg-light-neutral-100 dark:bg-dark-neutral-800 bg-opacity-75 dark:bg-opacity-75 backdrop-blur-sm">
-                  <div class="text-center">
-                    <div class="w-12 h-12 border-4 border-accent-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                    <p class="text-light-text-secondary dark:text-dark-text-secondary">Loading map...</p>
-                  </div>
+                <div class="text-light-text-secondary dark:text-dark-text-secondary">
+                  <p class="font-medium text-lg mb-2">Kreative Kanvas Jewelry</p>
+                  <p class="mb-1">Kitengela, Nairobi</p>
+                  <p>Kenya</p>
                 </div>
-              </div>
-              
-              <div class="p-4 bg-light-primary dark:bg-dark-primary border-t border-light-neutral-200 dark:border-dark-neutral-700">
-                <a 
-                  :href="directionsUrl" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="flex items-center justify-center gap-2 text-accent-primary hover:text-accent-secondary transition-colors group"
-                >
-                  <MapPinIcon class="h-5 w-5 group-hover:scale-110 transition-transform" />
-                  <span class="font-medium">Get Directions</span>
-                </a>
+                
+                <div class="mt-6">
+                  <a 
+                    href="https://www.google.com/maps/dir/?api=1&destination=-1.4774,36.9584&destination_place_id=Kitengela+Nairobi+Kenya" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center gap-2 bg-accent-primary hover:bg-accent-primary-dark text-white px-4 py-2 rounded-md transition-colors"
+                  >
+                    <MapPinIcon class="h-5 w-5" />
+                    <span class="font-medium">View on Google Maps</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -217,7 +219,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive } from 'vue';
 import { 
   MapPinIcon, 
   PhoneIcon, 
@@ -244,20 +246,6 @@ const errors = reactive({
 
 const isSubmitting = ref(false);
 const formSubmitted = ref(false);
-const mapContainer = ref(null);
-const mapLoading = ref(true);
-
-// Kitengela, Nairobi coordinates
-const storeLocation = {
-  lat: -1.4774,
-  lng: 36.9584,
-  address: 'Kitengela, Nairobi, Kenya'
-};
-
-// Computed URL for directions
-const directionsUrl = computed(() => {
-  return `https://www.google.com/maps/dir/?api=1&destination=${storeLocation.lat},${storeLocation.lng}&destination_place_id=Kitengela+Nairobi+Kenya`;
-});
 
 const validateForm = () => {
   let valid = true;
@@ -321,158 +309,6 @@ const submitForm = async () => {
     isSubmitting.value = false;
   }
 };
-
-// Initialize Google Maps with standard approach
-function initMap() {
-  try {
-    // Check if the map container exists
-    if (!mapContainer.value) {
-      console.error('Map container not found');
-      mapLoading.value = false;
-      return;
-    }
-    
-    // Check if Google Maps is loaded
-    if (!window.google || !window.google.maps) {
-      console.error('Google Maps API not loaded');
-      mapLoading.value = false;
-      return;
-    }
-
-    // Define map options
-    const mapOptions = {
-      center: { lat: storeLocation.lat, lng: storeLocation.lng },
-      zoom: 15,
-      mapTypeId: google.maps.MapTypeId.ROADMAP,
-      disableDefaultUI: false,
-      zoomControl: true,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true,
-      styles: [
-        {
-          "featureType": "administrative",
-          "elementType": "geometry",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "poi",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "featureType": "transit",
-          "elementType": "labels.icon",
-          "stylers": [{"visibility": "off"}]
-        }
-      ]
-    };
-
-    // Create new map instance
-    const map = new google.maps.Map(mapContainer.value, mapOptions);
-
-    // Create marker
-    const marker = new google.maps.Marker({
-      position: { lat: storeLocation.lat, lng: storeLocation.lng },
-      map: map,
-      title: 'Kreative Kanvas Jewelry',
-      animation: google.maps.Animation.DROP
-    });
-
-    // Create info window content
-    const contentString = `
-      <div class="p-3">
-        <h3 class="font-bold text-base mb-1">Kreative Kanvas Jewelry</h3>
-        <p class="text-sm">${storeLocation.address}</p>
-        <p class="text-sm mt-1">
-          <a href="tel:+2547 4141 4271" class="text-blue-600 hover:text-blue-800">
-            +2547 4141 4271
-          </a>
-        </p>
-      </div>
-    `;
-
-    // Create info window
-    const infoWindow = new google.maps.InfoWindow({
-      content: contentString,
-      maxWidth: 250
-    });
-    
-    // Open info window by default after a short delay
-    setTimeout(() => {
-      infoWindow.open({
-        anchor: marker,
-        map
-      });
-    }, 500);
-
-    // Add event listener to marker
-    marker.addListener('click', () => {
-      infoWindow.open({
-        anchor: marker,
-        map
-      });
-    });
-    
-    // Hide loading indicator
-    mapLoading.value = false;
-  } catch (error) {
-    console.error('Error initializing map:', error);
-    mapLoading.value = false;
-  }
-}
-
-// Load Google Maps API
-const loadGoogleMapsApi = () => {
-  // Check if Google Maps API is already loaded
-  if (window.google && window.google.maps) {
-    initMap();
-    return;
-  }
-  
-  // Create script element
-  const googleMapsApiScript = document.createElement('script');
-  
-  // Use a public API key or replace with your own
-  const apiKey = 'AIzaSyCkUOdZ5y7hMm0yrcCQoCvLwzdM6M8s5qk'; // This is a public testing key
-  
-  // Set script attributes
-  googleMapsApiScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-  googleMapsApiScript.async = true;
-  googleMapsApiScript.defer = true;
-  
-  // Set up callbacks
-  googleMapsApiScript.onload = () => {
-    // Initialize map when API is loaded
-    initMap();
-  };
-  
-  googleMapsApiScript.onerror = (event) => {
-    console.error('Failed to load Google Maps API:', event);
-    mapLoading.value = false;
-  };
-  
-  // Add script to document
-  document.head.appendChild(googleMapsApiScript);
-};
-
-// Error handling for Google Maps
-const handleGoogleMapsError = () => {
-  console.log('Google Maps failed to load - displaying fallback content');
-  // Don't redirect - just show a fallback UI
-};
-
-// Intercept Google Maps errors
-if (typeof window !== 'undefined') {
-  window.gm_authFailure = function() {
-    console.log('Google Maps authentication failed');
-    handleGoogleMapsError();
-  };
-}
-
-onMounted(() => {
-  // Initialize map
-  loadGoogleMapsApi();
-});
 </script>
 
 <style scoped>
@@ -558,21 +394,5 @@ onMounted(() => {
 
 .dark .contact-form label {
   color: var(--dark-text-primary);
-}
-
-/* Google Maps custom styles */
-:deep(.gm-style .gm-style-iw-c) {
-  padding: 12px;
-  border-radius: 8px;
-}
-
-:deep(.gm-style .gm-style-iw-d) {
-  overflow: auto !important;
-  max-height: none !important;
-}
-
-:deep(.gm-style-iw button.gm-ui-hover-effect) {
-  top: 2px !important;
-  right: 2px !important;
 }
 </style>
