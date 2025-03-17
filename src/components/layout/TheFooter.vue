@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router';
+import { getPublicImageUrl } from '@/utils/imageLoader';
 </script>
 
 <template>
@@ -7,25 +8,13 @@ import { RouterLink } from 'vue-router';
     <div class="container mx-auto px-4">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
-          <h3 class="font-bold text-lg mb-4 text-light-text-primary dark:text-dark-text-primary border-b-2 border-orange-500 dark:border-orange-500 inline-block pb-1">Beabed Art</h3>
+          <div class="flex items-center mb-4">
+            <img :src="getPublicImageUrl('images/sticky.PNG')" alt="Kreative Kanvas Logo" class="h-16 w-auto mr-2" />
+          </div>
           <p class="text-sm text-light-text-secondary dark:text-dark-neutral-700 leading-relaxed">
             Exquisite handcrafted jewelry for every occasion. Quality materials, timeless designs that capture your unique style.
           </p>
           
-          <!-- Newsletter signup - Accent color (10%) -->
-          <div class="mt-6">
-            <h4 class="text-sm font-semibold mb-2 text-light-text-primary dark:text-dark-text-primary">Join our newsletter</h4>
-            <div class="flex mt-2">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                class="px-3 py-2 text-sm bg-white dark:bg-dark-primary border border-light-neutral-300 dark:border-dark-neutral-600 text-light-text-primary dark:text-dark-text-primary rounded-l-md focus:outline-none focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-orange-500 dark:focus:border-orange-400 transition-colors"
-              >
-              <button class="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white px-3 py-2 text-sm font-medium rounded-r-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
-                Subscribe
-              </button>
-            </div>
-          </div>
         </div>
         
         <div>
@@ -85,7 +74,7 @@ import { RouterLink } from 'vue-router';
       
       <!-- Footer bottom - Secondary color (30%) -->
       <div class="mt-10 pt-8 border-t border-light-neutral-200 dark:border-dark-neutral-600 text-center">
-        <p class="text-sm text-light-neutral-600 dark:text-dark-neutral-600">&copy; {{ new Date().getFullYear() }} Beabed Art. All rights reserved.</p>
+        <p class="text-sm text-light-neutral-600 dark:text-dark-neutral-600">&copy; {{ new Date().getFullYear() }} Sticky Kreation . All rights reserved.</p>
         <div class="mt-2 flex justify-center space-x-6 text-xs">
           <a href="#" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Privacy Policy</a>
           <a href="#" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Terms of Service</a>

@@ -1,23 +1,10 @@
 <template>
   <div class="bg-light-primary dark:bg-dark-primary">
     <div class="pt-6">
-      <nav aria-label="Breadcrumb">
-        <ol role="list" class="mx-auto flex max-w-2xl items-center space-x-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <li v-for="breadcrumb in product?.breadcrumbs" :key="breadcrumb.id">
-            <div class="flex items-center">
-              <router-link :to="breadcrumb.href" class="mr-2 text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
-                {{ breadcrumb.name }}
-              </router-link>
-              <svg width="16" height="20" viewBox="0 0 16 20" fill="currentColor" class="h-5 w-4 text-light-neutral-300 dark:text-dark-neutral-600">
-                <path d="M5.697 4.34L8.98 16.532h1.327L7.025 4.341H5.697z" />
-              </svg>
-            </div>
-          </li>
-          <li class="text-sm">
-            <span class="font-medium text-accent-primary">{{ product?.name }}</span>
-          </li>
-        </ol>
-      </nav>
+      <!-- Replace inline breadcrumbs with Breadcrumbs component -->
+      <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+        <Breadcrumbs :items="breadcrumbItems" />
+      </div>
 
       <!-- Loading state -->
       <div v-if="loading" class="text-center py-8">
@@ -222,6 +209,7 @@ import { useAuthStore } from '../stores/auth'; // Add auth store import
 import { formatCurrency } from '@/utils/currency';
 import { getImageUrl } from '@/utils/imageLoader';
 import ImageViewer from '../components/ImageViewer.vue';
+import Breadcrumbs from '../components/ui/Breadcrumbs.vue'; // Import Breadcrumbs component
 
 const route = useRoute();
 const router = useRouter();
@@ -440,6 +428,30 @@ const allVariants = computed(() => {
   })) || [];
   
   return [...regularVariants, ...suggestedVariants.value];
+});
+
+// Create a computed property for breadcrumb items
+const breadcrumbItems = computed(() => {
+  if (!product.value) return [{ text: 'Home', path: '/' }, { text: 'Products', path: '/products' }];
+  
+  // Convert product breadcrumbs to the format expected by Breadcrumbs component
+  const items = [
+    { text: 'Home', path: '/' },
+    { text: 'Products', path: '/products' }
+  ];
+  
+  // Add category if present in product
+  if (product.value.category) {
+    items.push({ 
+      text: product.value.category, 
+      path: `/products?category=${encodeURIComponent(product.value.category)}`
+    });
+  }
+  
+  // Add current product as the last item (with no path)
+  items.push({ text: product.value.name });
+  
+  return items;
 });
 
 onMounted(fetchProduct);

@@ -89,72 +89,217 @@
         
         <!-- Images -->
         <div class="mb-6">
-          <h2 class="text-lg font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Product Images</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div 
-              v-for="(image, index) in product.images" 
-              :key="index"
-              class="relative border border-light-neutral-300 dark:border-dark-neutral-600 rounded p-2 bg-light-primary dark:bg-dark-primary"
-            >
-              <img 
-                :src="getImageSrc(image)" 
-                class="w-full h-32 object-cover rounded" 
-                alt="Product image"
-              >
-              <button 
-                type="button"
-                @click="removeImage(index)" 
-                class="absolute top-1 right-1 bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-orange-700 transition-colors"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div class="border border-dashed border-light-neutral-400 dark:border-dark-neutral-500 rounded-lg p-4 flex flex-col items-center justify-center min-h-[8rem] bg-light-neutral-100/50 dark:bg-dark-neutral-800/50">
-              <div class="mb-2 w-full">
-                <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Upload Image</label>
-                <input 
-                  type="file" 
-                  id="image-upload"
-                  @change="handleFileUpload"
-                  accept="image/*"
-                  class="w-full mb-2 text-sm text-light-text-primary dark:text-dark-text-primary"
-                />
-                <div class="text-sm text-light-neutral-500 dark:text-dark-neutral-400 mb-2 text-center">-- OR --</div>
-                <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Enter Image URL</label>
-                <input 
-                  type="url" 
-                  v-model="newImageUrl" 
-                  placeholder="Enter image URL"
-                  class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded mb-2 bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary"
-                >
-                <div class="flex justify-center">
-                  <button 
-                    type="button"
-                    @click="addImage" 
-                    class="bg-accent-quaternary hover:bg-accent-quaternary/90 text-white py-1 px-3 rounded-btn shadow-btn hover:shadow-btn-hover transition-all"
-                    :disabled="isUploading || !newImageUrl.trim()"
+          <h2 class="text-lg font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary flex items-center">
+            <span>Product Images</span>
+            <span class="ml-2 text-xs text-light-text-secondary dark:text-dark-text-secondary font-normal bg-accent-primary/10 dark:bg-accent-primary/20 text-accent-primary dark:text-accent-primary px-2 py-0.5 rounded-full">Required</span>
+          </h2>
+          
+          <!-- Featured Image Selection -->
+          <div class="mb-4">
+            <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Gallery Preview</h3>
+            <div class="bg-light-neutral-50 dark:bg-dark-neutral-800 rounded-lg p-4 border border-light-neutral-200 dark:border-dark-neutral-700">
+              <div v-if="product.images.length === 0" class="flex flex-col items-center justify-center py-8">
+                <svg class="w-12 h-12 text-light-neutral-400 dark:text-dark-neutral-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-light-neutral-500 dark:text-dark-neutral-400 text-center">
+                  No images added yet<br>
+                  <span class="text-sm">Add at least one product image below</span>
+                </p>
+              </div>
+              
+              <!-- Image Gallery -->
+              <div v-else class="relative">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div 
+                    v-for="(image, index) in product.images" 
+                    :key="index"
+                    class="group relative aspect-square rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all bg-light-neutral-200 dark:bg-dark-neutral-700"
                   >
-                    Add URL
-                  </button>
+                    <img 
+                      :src="getImageSrc(image)" 
+                      class="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      :alt="`Product image ${index + 1}`"
+                      @error="handleImageError($event, index)"
+                    >
+                    
+                    <!-- Image Controls Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                      <div class="flex justify-between items-center">
+                        <span class="text-white text-xs bg-black/50 px-1.5 py-0.5 rounded">
+                          Image #{{ index + 1 }}
+                        </span>
+                        <div class="flex space-x-1">
+                          <!-- Set as primary -->
+                          <button
+                            v-if="index !== 0" 
+                            type="button"
+                            @click="makeImagePrimary(index)"
+                            class="bg-light-primary/90 text-accent-primary rounded-full w-6 h-6 flex items-center justify-center hover:bg-light-primary transition-colors"
+                            title="Set as primary image"
+                          >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                            </svg>
+                          </button>
+                          
+                          <!-- Move left -->
+                          <button 
+                            v-if="index > 0"
+                            type="button"
+                            @click="moveImage(index, index - 1)" 
+                            class="bg-light-primary/90 text-light-text-primary rounded-full w-6 h-6 flex items-center justify-center hover:bg-light-primary transition-colors"
+                            title="Move left"
+                          >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                          </button>
+                          
+                          <!-- Move right -->
+                          <button 
+                            v-if="index < product.images.length - 1"
+                            type="button"
+                            @click="moveImage(index, index + 1)" 
+                            class="bg-light-primary/90 text-light-text-primary rounded-full w-6 h-6 flex items-center justify-center hover:bg-light-primary transition-colors"
+                            title="Move right"
+                          >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                          </button>
+                          
+                          <!-- Remove -->
+                          <button 
+                            type="button"
+                            @click="removeImage(index)" 
+                            class="bg-accent-tertiary rounded-full w-6 h-6 flex items-center justify-center hover:bg-accent-tertiary/90 transition-colors"
+                            title="Remove image"
+                          >
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Primary Image Badge -->
+                    <div v-if="index === 0" class="absolute top-2 left-2 bg-accent-quaternary text-white text-xs px-1.5 py-0.5 rounded">
+                      Primary
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Image Count Badge -->
+                <div class="absolute -top-3 -right-3 bg-accent-primary text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                  {{ product.images.length }}
                 </div>
               </div>
             </div>
           </div>
           
-          <!-- Upload progress/status -->
-          <div v-if="isUploading" class="mt-2 bg-accent-quaternary/10 text-accent-quaternary px-4 py-2 rounded border border-accent-quaternary/20">
-            <div class="flex items-center">
-              <span class="inline-block animate-spin mr-2">⟳</span>
-              <span>{{ uploadStatus }}</span>
+          <!-- Image Upload Area -->
+          <div class="bg-light-secondary dark:bg-dark-secondary rounded-lg border border-light-neutral-300 dark:border-dark-neutral-700 overflow-hidden">
+            <div class="p-4">
+              <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">Add Product Images</h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- File Upload Area -->
+                <div class="bg-light-neutral-50/50 dark:bg-dark-neutral-800/50 rounded-lg border border-dashed border-light-neutral-400 dark:border-dark-neutral-500 p-4 relative">
+                  <div class="flex flex-col items-center justify-center">
+                    <svg class="w-10 h-10 text-light-neutral-400 dark:text-dark-neutral-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <div class="text-center mb-3">
+                      <p class="text-sm text-light-text-secondary dark:text-dark-text-secondary font-medium">
+                        Drag and drop or click to upload
+                      </p>
+                      <p class="text-xs text-light-neutral-500 dark:text-dark-neutral-400 mt-1">
+                        PNG, JPG or JPEG (max. 5MB)
+                      </p>
+                    </div>
+                    
+                    <input 
+                      type="file" 
+                      id="image-upload"
+                      @change="handleFileUpload"
+                      accept="image/png, image/jpeg, image/jpg"
+                      class="cursor-pointer opacity-0 absolute inset-0 w-full h-full"
+                      aria-label="Upload product image"
+                    />
+                    
+                    <button 
+                      type="button"
+                      class="flex items-center text-sm bg-accent-quaternary hover:bg-accent-quaternary/90 text-white py-1.5 px-3 rounded-btn shadow-btn hover:shadow-btn-hover transition-all z-10"
+                      @click="document.getElementById('image-upload').click()"
+                    >
+                      <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                      </svg>
+                      Browse Files
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- URL Upload Area -->
+                <div class="bg-light-neutral-50/50 dark:bg-dark-neutral-800/50 rounded-lg border border-light-neutral-300 dark:border-dark-neutral-600 p-4">
+                  <div class="space-y-3">
+                    <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                      Or add image from URL
+                    </label>
+                    <div class="flex">
+                      <input 
+                        type="url" 
+                        v-model="newImageUrl" 
+                        placeholder="https://example.com/image.jpg"
+                        class="flex-1 p-2 border border-r-0 border-light-neutral-300 dark:border-dark-neutral-600 rounded-l bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary"
+                      >
+                      <button 
+                        type="button"
+                        @click="addImage" 
+                        class="bg-accent-quaternary hover:bg-accent-quaternary/90 text-white py-2 px-3 rounded-r shadow-btn hover:shadow-btn-hover transition-all flex items-center"
+                        :disabled="isUploading || !newImageUrl.trim()"
+                      >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add
+                      </button>
+                    </div>
+                    <p class="text-xs text-light-neutral-500 dark:text-dark-neutral-400">
+                      Enter a direct link to an image file (CORS restrictions may apply)
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Upload Status -->
+              <div v-if="isUploading" class="mt-4 bg-accent-quaternary/10 text-accent-quaternary px-4 py-3 rounded border border-accent-quaternary/20 flex items-center">
+                <div class="animate-spin mr-2 w-4 h-4 border-2 border-accent-quaternary border-t-transparent rounded-full"></div>
+                <span>{{ uploadStatus }}</span>
+              </div>
+            </div>
+            
+            <!-- Image Instructions and Tips -->
+            <div class="bg-light-neutral-100 dark:bg-dark-neutral-900/50 px-4 py-3 border-t border-light-neutral-200 dark:border-dark-neutral-700">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-accent-tertiary mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-1">
+                  <p>
+                    <span class="font-medium">Tips:</span> Add at least one product image. For best results, use images with a 1:1 aspect ratio.
+                  </p>
+                  <ul class="list-disc list-inside text-xs text-light-neutral-500 dark:text-dark-neutral-400 pl-1 space-y-0.5">
+                    <li>The first image will be the primary product image shown in listings</li>
+                    <li>You can rearrange images by using the arrow buttons</li>
+                    <li>High-resolution images will be automatically resized to optimize performance</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <p class="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-            Add at least one product image. For best results, use images with a 1:1 aspect ratio.
-            <br>
-            <span class="text-accent-tertiary dark:text-accent-tertiary font-medium">High-resolution images will be automatically resized to optimize performance.</span>
-          </p>
         </div>
         
         <!-- Additional Details -->
@@ -246,36 +391,151 @@
         
         <!-- New Variants Section -->
         <div class="mb-6">
-          <h2 class="text-lg font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Variants</h2>
-          <div v-if="product.variants.length">
-            <ul class="mb-4">
-              <li v-for="(variant, index) in product.variants" :key="index" class="flex justify-between items-center">
-                <span>{{ variant.name }} &mdash; 
-                  <span v-for="(col, idx) in variant.colors" :key="idx" 
-                    class="inline-block w-4 h-4 rounded-full border border-light-neutral-300 dark:border-dark-neutral-600 mr-1"
-                    :style="{ backgroundColor: col }"></span>
-                </span>
-                <button type="button" @click="product.variants.splice(index, 1)" class="text-red-600">Remove</button>
+          <h2 class="text-lg font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary flex items-center">
+            <span>Product Variants</span>
+            <span class="ml-2 text-xs text-light-text-secondary dark:text-dark-text-secondary font-normal bg-light-neutral-100 dark:bg-dark-neutral-700 px-2 py-0.5 rounded-full">Optional</span>
+          </h2>
+          
+          <!-- Saved Variants Display -->
+          <div v-if="product.variants.length" class="mb-4 bg-light-neutral-50 dark:bg-dark-neutral-800 rounded-lg p-4 border border-light-neutral-200 dark:border-dark-neutral-700">
+            <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">Saved Variants</h3>
+            <ul class="space-y-2">
+              <li v-for="(variant, index) in product.variants" :key="index" 
+                  class="flex items-center justify-between p-3 rounded-lg border border-light-neutral-200 dark:border-dark-neutral-600 bg-light-primary dark:bg-dark-primary hover:shadow-sm transition-shadow">
+                <div class="flex items-center">
+                  <span class="font-medium text-light-text-primary dark:text-dark-text-primary">{{ variant.name }}</span>
+                  <div class="ml-3 flex items-center gap-1">
+                    <div v-for="(color, idx) in variant.colors" :key="idx" 
+                         class="w-5 h-5 rounded-full border border-light-neutral-300 dark:border-dark-neutral-600 transition-transform hover:scale-110 cursor-pointer flex justify-center items-center"
+                         :style="{ backgroundColor: color }"
+                         :title="color">
+                    </div>
+                  </div>
+                </div>
+                <button type="button" 
+                        @click="product.variants.splice(index, 1)" 
+                        class="text-light-neutral-500 dark:text-dark-neutral-400 hover:text-accent-tertiary dark:hover:text-accent-tertiary flex items-center transition-colors">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  <span class="ml-1 text-sm">Remove</span>
+                </button>
               </li>
             </ul>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label for="variant-name" class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Variant Name</label>
-              <input type="text" id="variant-name" v-model="newVariantName" class="w-full p-2 border rounded" placeholder="e.g. White Beads & Black Strings">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Variant Colors</label>
-              <div class="flex items-center gap-2">
-                <div v-for="(color, index) in newVariantColors" :key="index" class="flex items-center gap-1">
-                  <input type="color" v-model="newVariantColors[index]" @input="updateVariantColor(index, $event)" class="w-10 h-10 p-0 border-0">
-                  <button type="button" @click="removeVariantColor(index)" class="text-red-600 text-xs">×</button>
+          
+          <!-- Add New Variant Form -->
+          <div class="bg-light-secondary dark:bg-dark-secondary rounded-lg p-5 border border-light-neutral-300 dark:border-dark-neutral-700">
+            <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-4">Add New Variant</h3>
+            
+            <!-- Name and Color Selection -->
+            <div class="space-y-4">
+              <div>
+                <label for="variant-name" class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                  Variant Name
+                </label>
+                <input 
+                  type="text" 
+                  id="variant-name" 
+                  v-model="newVariantName" 
+                  placeholder="e.g. 'Silver & Blue', 'Rose Gold', 'Extra Large'"
+                  class="w-full p-2 border border-light-neutral-300 dark:border-dark-neutral-600 rounded bg-light-primary dark:bg-dark-primary text-light-text-primary dark:text-dark-text-primary focus:ring-accent-primary focus:border-accent-primary"
+                >
+                <p class="mt-1 text-xs text-light-neutral-500 dark:text-dark-neutral-400">
+                  Name that describes this product variant (color, size, material, style, etc.)
+                </p>
+              </div>
+              
+              <!-- Color Palette -->
+              <div>
+                <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                  Color Palette
+                  <span class="ml-1 text-xs text-light-neutral-500 dark:text-dark-neutral-400 font-normal">
+                    (up to 5 colors)
+                  </span>
+                </label>
+                
+                <!-- Selected Colors Display -->
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                  <div 
+                    v-for="(color, index) in newVariantColors" 
+                    :key="index" 
+                    class="relative group"
+                  >
+                    <div class="flex flex-col items-center">
+                      <div 
+                        class="w-8 h-8 rounded-full border border-light-neutral-300 dark:border-dark-neutral-600 shadow-sm flex items-center justify-center"
+                        :style="{ backgroundColor: color }"
+                      ></div>
+                      <input 
+                        type="color" 
+                        v-model="newVariantColors[index]" 
+                        @input="updateVariantColor(index, $event)" 
+                        class="w-5 h-5 mt-1 p-0 border-0 cursor-pointer"
+                        :aria-label="`Color ${index + 1}`"
+                      >
+                      <button 
+                        type="button" 
+                        @click="removeVariantColor(index)" 
+                        class="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center bg-accent-tertiary text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Remove color"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    v-if="newVariantColors.length < 5"
+                    type="button" 
+                    @click="addNewVariantColor" 
+                    class="w-8 h-8 rounded-full border-2 border-dashed border-light-neutral-400 dark:border-dark-neutral-500 flex items-center justify-center hover:border-accent-primary dark:hover:border-accent-primary transition-colors"
+                    aria-label="Add color"
+                  >
+                    <span class="text-light-neutral-500 dark:text-dark-neutral-400 text-xl">+</span>
+                  </button>
                 </div>
-                <button type="button" @click="addNewVariantColor" class="px-2 py-1 bg-accent-quaternary hover:bg-accent-quaternary/90 text-white rounded text-xs">Add Color</button>
+                
+                <!-- Preset Colors -->
+                <div class="mt-2">
+                  <p class="text-xs text-light-neutral-500 dark:text-dark-neutral-400 mb-2">Common colors:</p>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button 
+                      v-for="(color, index) in presetColors" 
+                      :key="index"
+                      type="button" 
+                      @click="addPresetColor(color)" 
+                      :style="{ backgroundColor: color }"
+                      :disabled="newVariantColors.length >= 5"
+                      class="w-6 h-6 rounded-full border border-light-neutral-300 dark:border-dark-neutral-600 hover:scale-110 transition-transform"
+                      :aria-label="`Add ${color} color`"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Add Variant Button -->
+            <div class="mt-5 flex">
+              <button 
+                type="button" 
+                @click="addVariant" 
+                :disabled="!canAddVariant"
+                class="flex items-center px-4 py-2 rounded-btn shadow-btn text-white bg-accent-quaternary hover:bg-accent-quaternary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Variant
+              </button>
+              <div v-if="!canAddVariant" class="ml-2 text-sm text-accent-tertiary flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Please add a name and at least one color
               </div>
             </div>
           </div>
-          <button type="button" @click="addVariant" class="mt-3 bg-accent-quaternary hover:bg-accent-quaternary/90 text-white py-1 px-3 rounded-btn shadow-btn">Add Variant</button>
         </div>
         
         <div class="border-t border-light-neutral-300 dark:border-dark-neutral-700 pt-6 flex justify-end space-x-4">
@@ -548,6 +808,50 @@ const addVariant = () => {
     newVariantName.value = '';
     newVariantColors.value = [];
   }
+};
+
+const presetColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#000000', '#FFFFFF'];
+
+const addPresetColor = (color) => {
+  if (newVariantColors.value.length < 5) {
+    newVariantColors.value.push(color);
+  }
+};
+
+const canAddVariant = computed(() => {
+  return newVariantName.value.trim() && newVariantColors.value.length > 0;
+});
+
+const moveImage = (fromIndex, toIndex) => {
+  // Get the image being moved
+  const imageToMove = product.value.images[fromIndex];
+  
+  // Remove from current position
+  product.value.images.splice(fromIndex, 1);
+  
+  // Insert at new position
+  product.value.images.splice(toIndex, 0, imageToMove);
+};
+
+const makeImagePrimary = (index) => {
+  if (index <= 0 || index >= product.value.images.length) return;
+  
+  // Get the image to make primary
+  const imageToMakePrimary = product.value.images[index];
+  
+  // Remove it from the current position
+  product.value.images.splice(index, 1);
+  
+  // Add it to the beginning of the array (making it primary)
+  product.value.images.unshift(imageToMakePrimary);
+};
+
+const handleImageError = (event, index) => {
+  // Replace broken image with placeholder
+  event.target.src = '/images/no-image.jpg';
+  
+  // Optionally log the error for debugging
+  console.warn(`Image at index ${index} failed to load:`, product.value.images[index]);
 };
 </script>
 

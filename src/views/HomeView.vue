@@ -167,7 +167,7 @@
                   <h3 class="text-white text-2xl font-bold mb-2">{{ collection.name }}</h3>
                   <p class="text-white text-sm mb-4">{{ collection.description }}</p>
                   <router-link :to="`/products?category=${collection.category}`" 
-                    class="inline-block bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-md transition duration-300">
+                    class="inline-block bg-btn-primary hover:bg-btn-primary-hover text-white font-semibold py-2 px-4 rounded-md transition duration-300">
                     View Collection
                   </router-link>
                 </div>
@@ -183,7 +183,7 @@
       <div class="container mx-auto px-4">
         <div class="flex justify-between items-center mb-10 fade-slide-up">
           <h2 class="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Featured Products</h2>
-          <router-link to="/products" class="text-accent-primary hover:text-accent-secondary font-medium">
+          <router-link to="/products" class="text-btn-primary hover:text-accent-secondary font-medium">
             View all products <span aria-hidden="true">&rarr;</span>
           </router-link>
         </div>
@@ -196,7 +196,8 @@
           <p class="text-light-neutral-600 dark:text-dark-neutral-600">No products found. Please check back later.</p>
         </div>
         
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- Modified grid classes to ensure 3 products per row at medium to large screens -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           <div v-for="(product, index) in featuredProducts" 
               :key="product.id" 
               class="relative fade-slide-up"
