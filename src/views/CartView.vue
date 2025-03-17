@@ -85,7 +85,7 @@ const removeItem = () => {
             <span>Order Summary ({{ itemCount }} items)</span>
             <ChevronUpIcon class="h-5 w-5 ui-open:rotate-180 ui-open:transform transition-transform" />
           </DisclosureButton>
-          <DisclosurePanel class="px-4 pt-4 pb-2 bg-light-secondary dark:bg-dark-secondary rounded-b-lg">
+          <DisclosurePanel class="px-4 pt-4 pb-5 bg-light-secondary dark:bg-dark-secondary rounded-b-lg">
             <div class="space-y-2 text-sm">
               <div class="flex justify-between text-light-text-primary dark:text-dark-text-primary">
                 <span>Subtotal</span>
@@ -96,12 +96,36 @@ const removeItem = () => {
                 <span v-if="shippingCost > 0" class="text-light-text-primary dark:text-dark-text-primary">{{ formatCurrency(shippingCost) }}</span>
                 <span v-else class="text-accent-tertiary">Free</span>
               </div>
+              
+              <div v-if="shippingCost > 0" class="text-sm bg-accent-quaternary/10 text-accent-quaternary p-3 rounded-md mt-3">
+                <p>Free shipping on orders over KES 10,000</p>
+                <p class="mt-1">Add {{ formatCurrency(10000 - subtotal) }} more to qualify</p>
+              </div>
+              
               <div class="border-t border-light-neutral-300 dark:border-dark-neutral-600 pt-2 mt-2">
                 <div class="flex justify-between font-bold text-light-text-primary dark:text-dark-text-primary">
                   <span>Total</span>
                   <span>{{ formatCurrency(total) }}</span>
                 </div>
               </div>
+            </div>
+            
+            <div class="mt-4 space-y-3">
+              <router-link 
+                to="/checkout" 
+                class="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white w-full py-2 block text-center rounded-md transition-colors focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="cart.length === 0"
+                :aria-disabled="cart.length === 0"
+              >
+                Proceed to Checkout
+              </router-link>
+              
+              <router-link 
+                to="/products" 
+                class="text-accent-quaternary hover:text-accent-quaternary/80 transition-colors text-center block focus:outline-none focus:underline text-sm"
+              >
+                Continue Shopping
+              </router-link>
             </div>
           </DisclosurePanel>
         </Disclosure>

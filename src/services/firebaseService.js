@@ -807,7 +807,42 @@ Remove before swimming or bathing`,
       console.error('Error seeding default admin:', error)
       throw error
     }
-  }
+  },
+
+  // Newsletter subscription
+  async subscribeToNewsletter(email, name) {
+    try {
+      const newslettersRef = collection(db, 'newsletters');
+      
+      // Check if email already exists to prevent duplicates
+      const q = query(newslettersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        // Email already exists
+        return { success: false, message: 'This email is already subscribed.' };
+      }
+      
+      // Add new subscription
+      const subscription = {
+        email: email,
+        name: name || '',
+        subscriptionDate: serverTimestamp(),
+        status: 'active'
+      };
+      
+      const docRef = await addDoc(newslettersRef, subscription);
+      
+      return { 
+        success: true, 
+        message: 'Subscription successful!',
+        id: docRef.id 
+      };
+    } catch (error) {
+      console.error('Error subscribing to newsletter:', error);
+      throw error;
+    }
+  },
 }
 
 export default app

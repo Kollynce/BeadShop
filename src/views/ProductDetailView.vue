@@ -21,30 +21,75 @@
       </div>
 
       <template v-else-if="product">
-        <!-- Image gallery -->
-        <div class="mx-auto mt-6 max-w-2xl sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:gap-4 lg:px-8">
-          <div class="lg:grid lg:grid-rows-2 lg:gap-4">
-            <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(0)">
-              <img :src="processImageUrl(product.images[0]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+        <!-- Image gallery - Desktop Grid / Mobile Slider -->
+        <div class="mx-auto mt-6 max-w-2xl sm:px-6 lg:max-w-7xl lg:px-8">
+          <!-- Desktop Image Grid (hidden on mobile) -->
+          <div class="hidden sm:block lg:grid lg:grid-cols-3 lg:gap-4">
+            <div class="lg:grid lg:grid-rows-2 lg:gap-4">
+              <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(0)">
+                <img :src="processImageUrl(product.images[0]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+              </div>
+              <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(1)">
+                <img :src="processImageUrl(product.images[1]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+              </div>
             </div>
-            <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(1)">
-              <img :src="processImageUrl(product.images[1]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+            <div class="lg:grid lg:grid-rows-2 lg:gap-4">
+              <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(2)">
+                <img :src="processImageUrl(product.images[2]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+              </div>
+              <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(3)">
+                <img :src="processImageUrl(product.images[3]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+              </div>
+            </div>
+            <div class="lg:grid lg:grid-rows-2 lg:gap-4">
+              <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(4)">
+                <img :src="processImageUrl(product.images[4]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+              </div>
+              <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(5)">
+                <img :src="processImageUrl(product.images[5]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+              </div>
             </div>
           </div>
-          <div class="lg:grid lg:grid-rows-2 lg:gap-4">
-            <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(2)">
-              <img :src="processImageUrl(product.images[2]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+          
+          <!-- Mobile Image Slider (visible only on mobile) -->
+          <div class="block sm:hidden relative">
+            <div class="relative overflow-hidden h-[70vh] rounded-lg bg-light-secondary dark:bg-dark-secondary">
+              <img :src="processImageUrl(product.images[currentMobileImageIndex]?.main) || getImageUrl('placeholder.jpg')" 
+                   :alt="product.name" 
+                   class="h-full w-full object-contain" 
+                   @error="handleImageError" />
+              
+              <!-- Slide controls -->
+              <button @click="prevMobileImage" 
+                      class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 dark:bg-black/60 rounded-full p-2 shadow-lg text-accent-primary hover:bg-white hover:text-btn-primary-hover transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button @click="nextMobileImage" 
+                      class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 dark:bg-black/60 rounded-full p-2 shadow-lg text-accent-primary hover:bg-white hover:text-btn-primary-hover transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+              
+              <!-- Full screen button -->
+              <button @click="openImageViewer(currentMobileImageIndex)"
+                      class="absolute right-2 top-2 bg-white/70 dark:bg-black/60 rounded-full p-2 shadow-lg text-accent-primary hover:bg-white hover:text-btn-primary-hover transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m9 0h4.5m-4.5 0v4.5m-9 18.75h4.5m-4.5 0v-4.5m4.5 0h9m-9 0v4.5m0 0h4.5" />
+                </svg>
+              </button>
             </div>
-            <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(3)">
-              <img :src="processImageUrl(product.images[3]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
-            </div>
-          </div>
-          <div class="lg:grid lg:grid-rows-2 lg:gap-4">
-            <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(4)">
-              <img :src="processImageUrl(product.images[4]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
-            </div>
-            <div class="aspect-square overflow-hidden rounded-lg cursor-pointer bg-light-secondary dark:bg-dark-secondary" @click="openImageViewer(5)">
-              <img :src="processImageUrl(product.images[5]?.main) || getImageUrl('placeholder.jpg')" :alt="product.name" class="h-full w-full object-cover" @error="handleImageError" />
+            
+            <!-- Dots indicator -->
+            <div class="flex justify-center mt-4">
+              <button v-for="(_, index) in processedImages" :key="index" 
+                      @click="currentMobileImageIndex = index"
+                      :class="['w-2 h-2 mx-1 rounded-full transition-colors', 
+                              currentMobileImageIndex === index ? 'bg-accent-primary' : 'bg-gray-300 dark:bg-dark-neutral-600']"
+                      :aria-label="`View image ${index + 1}`">
+              </button>
             </div>
           </div>
         </div>
@@ -231,6 +276,7 @@ const requestedColors = ref(['#ffffff']);
 const colorError = ref('');
 const suggestedVariants = ref([]); // Add state for suggested variants
 const loadingSuggestions = ref(false); // Loading state for suggested variants
+const currentMobileImageIndex = ref(0);
 
 const productId = computed(() => route.params.id);
 const totalPrice = computed(() => product.value ? product.value.price * quantity.value : 0);
@@ -453,6 +499,16 @@ const breadcrumbItems = computed(() => {
   
   return items;
 });
+
+const nextMobileImage = () => {
+  if (!product.value?.images?.length) return;
+  currentMobileImageIndex.value = (currentMobileImageIndex.value + 1) % product.value.images.length;
+};
+
+const prevMobileImage = () => {
+  if (!product.value?.images?.length) return;
+  currentMobileImageIndex.value = (currentMobileImageIndex.value - 1 + product.value.images.length) % product.value.images.length;
+};
 
 onMounted(fetchProduct);
 watch(() => route.params.id, fetchProduct);
