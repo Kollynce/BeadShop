@@ -10,19 +10,18 @@ import {
 import { firebaseService } from '../services/firebaseService'
 import router from '../router'
 import { adminSetup } from '../utils/adminSetup'
+import { useNotificationStore } from './notification'
 
 // Initialize Firebase auth instance at the module level
-// This ensures it's only created once and available to all methods
 const auth = getAuth();
 
-// Add a property to track initialization
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     isInitializing: true,
     loading: true,
     error: null,
-    authChecked: false, // Track if auth has been checked
+    authChecked: false,
   }),
   actions: {
     async initialize() {
@@ -145,45 +144,119 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Update the login method to be more efficient
     async login(email, password) {
+      const notificationStore = useNotificationStore();
       try {
-        // Set loading state
         this.loading = true;
         this.error = null;
     
-        // First get user credentials - this is the critical path
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         
-        // Set basic user data immediately for faster UI response
         this.user = {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
-          // Set a default non-admin status initially
           isAdmin: false
         };
         
-        // Store this basic data immediately
         localStorage.setItem('userData', JSON.stringify(this.user));
         
-        // Calculate redirect path early so we can return it
         const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/account';
         sessionStorage.removeItem('redirectAfterLogin');
         
-        // Load additional profile data in the background
         this.loadUserProfileInBackground(userCredential.user.uid);
+
+        notificationStore.addNotification({
+          title: 'Welcome Back',
+          message: `Successfully signed in as ${email}`,
+          type: 'success',
+          timeout: 3000
+        });
         
         return redirectPath;
       } catch (error) {
         console.error('Login error:', error);
         this.error = error.message;
+        notificationStore.addNotification({
+          title: 'Login Failed',
+          message: error.message,
+          type: 'error',
+          timeout: 5000
+        });
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    
+
+    async logout() {
+      const notificationStore = useNotificationStore();
+      try {
+        const email = this.user?.email; // Store email before clearing user
+        await signOut(auth);
+        this.user = null;
+        localStorage.removeItem('userIsAdmin');
+        localStorage.removeItem('userData');
+        
+        notificationStore.addNotification({
+          title: 'Signed Out',
+          message: `Successfully signed out${email ? ` from ${email}` : ''}`,
+          type: 'info',
+          timeout: 3000
+        });
+        
+        router.push('/');
+      } catch (e) {
+        this.error = e.message;
+        notificationStore.addNotification({
+          title: 'Error',
+          message: `Failed to sign out: ${e.message}`,
+          type: 'error',
+          timeout: 5000
+        });
+        throw e;
+      }
+    },
+
+    async register(email, password, userData) {
+      const notificationStore = useNotificationStore();
+      try {
+        this.error = null;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        if (userData) {
+          await firebaseService.createUserProfile(userCredential.user.uid, userData);
+        }
+        
+        notificationStore.addNotification({
+          title: 'Welcome!',
+          message: `Account successfully created for ${email}`,
+          type: 'success',
+          timeout: 3000
+        });
+
+        // Create a persisted welcome notification for the new user
+        await notificationStore.addPersistedNotification({
+          title: 'Welcome to BeadShop',
+          message: 'Thank you for joining our community! Feel free to explore our products and start shopping.',
+          type: 'info',
+          userId: userCredential.user.uid
+        });
+        
+        router.push('/');
+        return userCredential;
+      } catch (e) {
+        this.error = e.message;
+        notificationStore.addNotification({
+          title: 'Registration Failed',
+          message: e.message,
+          type: 'error',
+          timeout: 5000
+        });
+        throw e;
+      }
+    },
+
     // New method to load user profile in the background
     async loadUserProfileInBackground(userId) {
       try {
@@ -240,24 +313,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    async register(email, password, userData) {
-      try {
-        this.error = null;
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        // Create user profile in Firestore
-        if (userData) {
-          await firebaseService.createUserProfile(userCredential.user.uid, userData);
-        }
-        
-        router.push('/');
-        return userCredential;
-      } catch (e) {
-        this.error = e.message;
-        throw e;
-      }
-    },
-    
     async setUser(userData) {
       if (userData) {
         // Get the complete user profile including admin status
@@ -296,6 +351,36 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Error restoring session:', error);
         return null;
+      }
+    },
+
+    async updateProfile(userData) {
+      const notificationStore = useNotificationStore()
+      this.loading = true
+      
+      try {
+        await firebaseService.updateUserProfile(this.user.uid, userData)
+        // Update local user data
+        this.user = { ...this.user, ...userData }
+        
+        notificationStore.addNotification({
+          title: 'Profile Updated',
+          message: 'Your profile has been updated successfully',
+          type: 'success',
+          timeout: 3000
+        })
+        return true
+      } catch (error) {
+        console.error('Profile update error:', error)
+        notificationStore.addNotification({
+          title: 'Update Failed',
+          message: 'Failed to update profile. Please try again.',
+          type: 'error',
+          timeout: 5000
+        })
+        return false
+      } finally {
+        this.loading = false
       }
     }
   },

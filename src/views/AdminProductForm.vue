@@ -221,8 +221,8 @@
                     </div>
                     
                     <input 
+                      ref="fileInput"
                       type="file" 
-                      id="image-upload"
                       @change="handleFileUpload"
                       accept="image/png, image/jpeg, image/jpg"
                       class="cursor-pointer opacity-0 absolute inset-0 w-full h-full"
@@ -232,7 +232,7 @@
                     <button 
                       type="button"
                       class="flex items-center text-sm bg-accent-quaternary hover:bg-accent-quaternary/90 text-white py-1.5 px-3 rounded-btn shadow-btn hover:shadow-btn-hover transition-all z-10"
-                      @click="document.getElementById('image-upload').click()"
+                      @click="$refs.fileInput.click()"
                     >
                       <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -594,9 +594,11 @@ import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { firebaseService } from '../services/firebaseService';
 import { formatCurrency } from '@/utils/currency';
+import { useNotificationStore } from '@/stores/notification';
 
 const router = useRouter();
 const route = useRoute();
+const notificationStore = useNotificationStore();
 
 const productId = computed(() => route.params.id);
 const isEditMode = computed(() => !!productId.value);
@@ -768,8 +770,20 @@ const saveProduct = async () => {
     // Proceed with saving
     if (isEditMode.value) {
       await firebaseService.updateProduct(productId.value, product.value);
+      // Add notification for product update
+      await notificationStore.addPersistedNotification({
+        title: 'Product Updated',
+        message: `Successfully updated product: ${product.value.name}`,
+        type: 'success'
+      });
     } else {
-      await firebaseService.createProduct(product.value);
+      const newProduct = await firebaseService.createProduct(product.value);
+      // Add notification for new product
+      await notificationStore.addPersistedNotification({
+        title: 'New Product Created',
+        message: `Successfully created new product: ${product.value.name}`,
+        type: 'success'
+      });
     }
     
     // Clear localStorage after successful save
@@ -778,6 +792,13 @@ const saveProduct = async () => {
   } catch (err) {
     console.error('Error saving product:', err);
     error.value = err.message;
+    // Add error notification
+    notificationStore.addNotification({
+      title: 'Error',
+      message: `Failed to ${isEditMode.value ? 'update' : 'create'} product: ${err.message}`,
+      type: 'error',
+      timeout: 5000
+    });
   } finally {
     isSaving.value = false;
   }

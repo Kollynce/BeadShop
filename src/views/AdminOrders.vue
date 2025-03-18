@@ -362,6 +362,7 @@ import { ref, computed, onMounted } from 'vue';
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue';
 import { firebaseService } from '../services/firebaseService';
 import { formatCurrency } from '@/utils/currency';
+import { useNotificationStore } from '@/stores/notification';
 
 // State
 const orders = ref([]);
@@ -520,22 +521,74 @@ const updateOrderStatus = async () => {
   statusUpdateLoading.value = true;
   try {
     await firebaseService.updateOrderStatus(selectedOrder.value.id, newStatus.value);
-
+    
     // Update the order in the local state
     const index = orders.value.findIndex(o => o.id === selectedOrder.value.id);
     if (index !== -1) {
       orders.value[index].status = newStatus.value;
     }
-
+    
     // Update selected order if the details modal is open
     if (selectedOrder.value) {
       selectedOrder.value.status = newStatus.value;
     }
 
+    // Create notifications
+    // Notification for admin
+    await notificationStore.addPersistedNotification({
+      title: 'Order Status Updated',
+      message: `Order #${selectedOrder.value.orderNumber || selectedOrder.value.id.substring(0, 6)} status changed to ${newStatus.value}`,
+      type: 'success',
+      isAdmin: true
+    });
+
+    // If there's a customer ID, create a notification for them too
+    if (selectedOrder.value.userId) {
+      let notificationType;
+      let notificationMessage;
+
+      switch (newStatus.value) {
+        case 'shipped':
+          notificationType = 'info';
+          notificationMessage = `Great news! Your order #${selectedOrder.value.orderNumber} has been shipped and is on its way.`;
+          break;
+        case 'delivered':
+          notificationType = 'success';
+          notificationMessage = `Your order #${selectedOrder.value.orderNumber} has been delivered. Thank you for shopping with us!`;
+          break;
+        case 'cancelled':
+          notificationType = 'error';
+          notificationMessage = `Your order #${selectedOrder.value.orderNumber} has been cancelled. Please contact support if you have any questions.`;
+          break;
+        default:
+          notificationType = 'info';
+          notificationMessage = `Your order #${selectedOrder.value.orderNumber} status has been updated to ${newStatus.value}.`;
+      }
+
+      await notificationStore.addPersistedNotification({
+        title: 'Order Status Update',
+        message: notificationMessage,
+        type: notificationType,
+        userId: selectedOrder.value.userId
+      });
+
+      // Add immediate notification for status update
+      notificationStore.addNotification({
+        title: 'Success',
+        message: `Order status updated to ${newStatus.value}`,
+        type: 'success'
+      });
+    }
+
     showStatusModal.value = false;
   } catch (error) {
     console.error("Error updating order status:", error);
-    // You could add error handling UI here if needed
+    notificationStore.addNotification({
+      title: 'Error',
+      message: `Failed to update order status: ${error.message}`,
+      type: 'error',
+      timeout: 5000
+    });
   } finally {
     statusUpdateLoading.value = false;
   }
