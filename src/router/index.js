@@ -19,121 +19,141 @@ import AdminProductForm from '../views/AdminProductForm.vue'
 import AdminOrders from '../views/AdminOrders.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
 
+const routes = [
+  {
+    path: '/',
+    name: 'home',
+    component: HomeView
+  },
+  {
+    path: '/products',
+    name: 'products',
+    component: ProductsView
+  },
+  {
+    path: '/product/:id',
+    name: 'product-detail',
+    component: ProductDetailView
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView
+  },
+  {
+    path: '/account',
+    name: 'account',
+    component: AccountView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/cart',
+    name: 'cart',
+    component: CartView
+  },
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: CheckoutView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: AboutUs
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: ContactView
+  },
+  // Admin Routes
+  {
+    path: '/admin',
+    name: 'admin',
+    component: AdminDashboard,
+    meta: { requiresAuth: true, isAdmin: true }
+  },
+  {
+    path: '/admin/products',
+    name: 'admin-products',
+    component: AdminProductsView,
+    meta: { requiresAuth: true, isAdmin: true }
+  },
+  {
+    path: '/admin/products/new',
+    name: 'admin-product-new',
+    component: AdminProductForm,
+    meta: { requiresAuth: true, isAdmin: true }
+  },
+  {
+    path: '/admin/products/edit/:id',
+    name: 'admin-product-edit',
+    component: AdminProductForm,
+    meta: { requiresAuth: true, isAdmin: true }
+  },
+  {
+    path: '/admin/orders',
+    name: 'admin-orders',
+    component: AdminOrders,
+    meta: { requiresAuth: true, isAdmin: true }
+  },
+  {
+    path: '/admin/users',
+    name: 'admin-users',
+    component: AdminUsersView,
+    meta: { requiresAuth: true, isAdmin: true },
+    beforeEnter: requireAdmin
+  },
+  {
+    path: '/notification-test',
+    name: 'NotificationTest',
+    component: () => import('@/views/NotificationTest.vue'),
+    meta: {
+      title: 'Notification Test'
+    }
+  },
+  // Account routes
+  {
+    path: '/account/notifications',
+    name: 'AccountNotifications',
+    component: () => import('@/views/account/Notifications.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Notifications'
+    }
+  },
+  // Catch-all route - must be last
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: HomeView,
+    beforeEnter: (to, from, next) => {
+      console.log(`Not-found route triggered for: ${to.fullPath}`);
+      
+      // Check if this is a GitHub Pages SPA redirect
+      if (to.query && Object.keys(to.query).length > 0 && to.query[0]?.startsWith('/')) {
+        console.log('Detected GitHub Pages SPA redirect, handling specially');
+        // Let the GitHub Pages redirect script handle it
+        next(false);
+        return;
+      }
+      
+      // Regular 404, go to home
+      next('/');
+    }
+  }
+]
+
 // Make sure the router instance is configured correctly
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView
-    },
-    {
-      path: '/products',
-      name: 'products',
-      component: ProductsView
-    },
-    {
-      path: '/product/:id',
-      name: 'product-detail',
-      component: ProductDetailView
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView
-    },
-    {
-      path: '/account',
-      name: 'account',
-      component: AccountView,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/cart',
-      name: 'cart',
-      component: CartView
-    },
-    {
-      path: '/checkout',
-      name: 'checkout',
-      component: CheckoutView,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: AboutUs
-    },
-    {
-      path: '/contact',
-      name: 'contact',
-      component: ContactView
-    },
-    // Admin Routes
-    {
-      path: '/admin',
-      name: 'admin',
-      component: AdminDashboard,
-      meta: { requiresAuth: true, isAdmin: true }
-    },
-    {
-      path: '/admin/products',
-      name: 'admin-products',
-      component: AdminProductsView,
-      meta: { requiresAuth: true, isAdmin: true }
-    },
-    {
-      path: '/admin/products/new',
-      name: 'admin-product-new',
-      component: AdminProductForm,
-      meta: { requiresAuth: true, isAdmin: true }
-    },
-    {
-      path: '/admin/products/edit/:id',
-      name: 'admin-product-edit',
-      component: AdminProductForm,
-      meta: { requiresAuth: true, isAdmin: true }
-    },
-    {
-      path: '/admin/orders',
-      name: 'admin-orders',
-      component: AdminOrders,
-      meta: { requiresAuth: true, isAdmin: true }
-    },
-    {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: AdminUsersView,
-      meta: { requiresAuth: true, isAdmin: true },
-      beforeEnter: requireAdmin
-    },
-    // Catch-all route - must be last
-    {
-      path: '/:pathMatch(.*)*',
-      name: 'not-found',
-      component: HomeView,
-      beforeEnter: (to, from, next) => {
-        console.log(`Not-found route triggered for: ${to.fullPath}`);
-        
-        // Check if this is a GitHub Pages SPA redirect
-        if (to.query && Object.keys(to.query).length > 0 && to.query[0]?.startsWith('/')) {
-          console.log('Detected GitHub Pages SPA redirect, handling specially');
-          // Let the GitHub Pages redirect script handle it
-          next(false);
-          return;
-        }
-        
-        // Regular 404, go to home
-        next('/');
-      }
-    }
-  ],
+  routes,
   strict: true, // Enable strict mode for better path matching
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

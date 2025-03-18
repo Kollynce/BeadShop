@@ -178,11 +178,34 @@
                 </a>
               </div>
 
+              <!-- Notifications -->
+              <div class="ml-4 flow-root lg:ml-6">
+                <button 
+                  @click="toggleNotifications" 
+                  class="group -m-2 flex items-center p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md relative"
+                  aria-label="View notifications"
+                >
+                  <BellIcon 
+                    class="size-6 shrink-0 text-light-neutral-500 dark:text-dark-neutral-500 group-hover:text-accent-primary dark:group-hover:text-accent-primary" 
+                    aria-hidden="true" 
+                  />
+                  <span 
+                    v-if="unreadNotificationsCount > 0" 
+                    class="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full"
+                  >
+                    {{ unreadNotificationsCount }}
+                  </span>
+                </button>
+              </div>
+
               <!-- Cart -->
               <div class="ml-4 flow-root lg:ml-6">
-                <RouterLink to="/cart" class="group -m-2 flex items-center p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md">
+                <RouterLink to="/cart" class="group -m-2 flex items-center p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md relative">
                   <ShoppingBagIcon class="size-6 shrink-0 text-light-neutral-500 dark:text-dark-neutral-500 group-hover:text-accent-primary dark:group-hover:text-accent-primary" aria-hidden="true" />
-                  <span v-if="itemCount > 0" class="ml-2 text-sm font-medium text-light-text-primary dark:text-dark-neutral-700 group-hover:text-accent-primary dark:group-hover:text-accent-primary">
+                  <span 
+                    v-if="itemCount > 0" 
+                    class="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full pointer-events-none"
+                  >
                     {{ itemCount }}
                   </span>
                   <span class="sr-only">items in cart, view bag</span>
@@ -193,6 +216,72 @@
         </nav>
       </div>
     </header>
+    
+    <!-- Notification Panel -->
+    <transition
+      enter-active-class="transition ease-out duration-300"
+      enter-from-class="transform opacity-0 scale-95"
+      enter-to-class="transform opacity-100 scale-100"
+      leave-active-class="transition ease-in duration-200"
+      leave-from-class="transform opacity-100 scale-100"
+      leave-to-class="transform opacity-0 scale-95"
+    >
+      <div v-if="notificationsOpen" class="absolute right-4 top-20 z-50 mt-2 w-80 origin-top-right rounded-md bg-light-secondary dark:bg-dark-secondary py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <div class="px-4 py-2 border-b border-light-neutral-300 dark:border-dark-neutral-600">
+          <h3 class="text-lg font-medium text-light-text-primary dark:text-dark-text-primary">Notifications</h3>
+        </div>
+        <div class="max-h-80 overflow-y-auto">
+          <div v-if="notificationStore.userNotifications.length === 0" class="px-4 py-6 text-center text-light-text-secondary dark:text-dark-neutral-700">
+            You have no notifications.
+          </div>
+          <div v-else class="divide-y divide-light-neutral-200 dark:divide-dark-neutral-700">
+            <div 
+              v-for="notification in notificationStore.userNotifications" 
+              :key="notification.id" 
+              :class="[
+                'px-4 py-3',
+                notification.read ? 'bg-light-primary dark:bg-dark-primary' : 'bg-light-neutral-50 dark:bg-dark-neutral-800'
+              ]"
+            >
+              <div class="flex items-start">
+                <div class="shrink-0 pt-0.5">
+                  <component 
+                    :is="notificationIcons[notification.type] || notificationIcons.info" 
+                    :class="[
+                      'h-5 w-5', 
+                      notificationIconColors[notification.type] || notificationIconColors.info
+                    ]" 
+                    aria-hidden="true" 
+                  />
+                </div>
+                <div class="ml-3 w-0 flex-1">
+                  <p class="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">{{ notification.title }}</p>
+                  <p class="mt-1 text-sm text-light-text-secondary dark:text-dark-neutral-700">{{ notification.message }}</p>
+                  <p class="mt-1 text-xs text-light-text-tertiary dark:text-dark-neutral-600">
+                    {{ formatDate(notification.createdAt) }}
+                  </p>
+                </div>
+                <div class="ml-4 flex shrink-0">
+                  <button 
+                    @click="markAsRead(notification)" 
+                    type="button" 
+                    class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                  >
+                    <span v-if="!notification.read">Mark as read</span>
+                    <span v-else>Mark as unread</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-4 py-2 border-t border-light-neutral-300 dark:border-dark-neutral-600 text-center">
+          <RouterLink to="/account/notifications" class="text-sm text-orange-600 hover:text-orange-700" @click="notificationsOpen = false">
+            View all notifications
+          </RouterLink>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -201,7 +290,8 @@ import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { useThemeStore } from '@/stores/theme'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useNotificationStore } from '@/stores/notification'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import {
   Dialog,
   DialogPanel,
@@ -219,7 +309,12 @@ import {
   XMarkIcon,
   ChevronDownIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  BellIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  InformationCircleIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 import { useRouter, useRoute } from 'vue-router'
 import { getPublicImageUrl } from '@/utils/imageLoader';
@@ -229,13 +324,39 @@ const route = useRoute()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const themeStore = useThemeStore()
+const notificationStore = useNotificationStore()
 const mobileMenuOpen = ref(false)
+const notificationsOpen = ref(false)
 const isScrolled = ref(false)
 
 const itemCount = computed(() => cartStore.itemCount)
 
+const unreadNotificationsCount = computed(() => {
+  return notificationStore.userNotifications.filter(n => !n.read).length
+})
+
+const notificationIcons = {
+  success: CheckCircleIcon,
+  error: ExclamationCircleIcon,
+  info: InformationCircleIcon,
+  warning: ExclamationTriangleIcon
+}
+
+const notificationIconColors = {
+  success: 'text-green-500',
+  error: 'text-red-500',
+  info: 'text-blue-500',
+  warning: 'text-yellow-500'
+}
+
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
+  if (mobileMenuOpen.value) notificationsOpen.value = false
+}
+
+const toggleNotifications = () => {
+  notificationsOpen.value = !notificationsOpen.value
+  if (notificationsOpen.value) mobileMenuOpen.value = false
 }
 
 const closeMobileMenu = () => {
@@ -253,6 +374,34 @@ const logout = async () => {
   router.push('/')
 }
 
+const markAsRead = (notification) => {
+  if (notification.read) {
+    // Mark as unread functionality would go here
+  } else {
+    notificationStore.markAsRead(notification.id)
+  }
+}
+
+const formatDate = (date) => {
+  if (!date) return ''
+  
+  const now = new Date()
+  const notifDate = new Date(date)
+  
+  // If today, show time
+  if (notifDate.toDateString() === now.toDateString()) {
+    return notifDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  
+  // If this year, show month and day
+  if (notifDate.getFullYear() === now.getFullYear()) {
+    return notifDate.toLocaleDateString([], { month: 'short', day: 'numeric' })
+  }
+  
+  // Otherwise show full date
+  return notifDate.toLocaleDateString()
+}
+
 const isCurrentRoute = (path) => {
   return route.path === path || (path !== '/' && route.path.startsWith(path))
 }
@@ -265,6 +414,21 @@ const isAdmin = computed(() => {
   return authStore.user?.isAdmin === true
 })
 
+// Close notifications panel when clicking outside
+const handleClickOutside = (event) => {
+  if (notificationsOpen.value && !event.target.closest('[aria-label="View notifications"]') && 
+      !event.target.closest('.notifications-panel')) {
+    notificationsOpen.value = false
+  }
+}
+
+// Load user notifications when authenticated
+watch(() => authStore.user, (newValue) => {
+  if (newValue) {
+    notificationStore.loadUserNotifications()
+  }
+}, { immediate: true })
+
 // Close mobile menu when route changes or on large screens
 onMounted(() => {
   window.addEventListener('resize', () => {
@@ -274,10 +438,12 @@ onMounted(() => {
   })
   
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('click', handleClickOutside)
 })
 </script>
 
