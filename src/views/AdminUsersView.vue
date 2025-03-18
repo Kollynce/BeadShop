@@ -190,6 +190,13 @@
                     >
                       <PencilIcon class="h-5 w-5" />
                     </button>
+                    <button 
+                      @click="confirmDeleteUser(user)" 
+                      class="text-red-500 hover:text-red-600 transition-colors"
+                      title="Delete User"
+                    >
+                      <TrashIcon class="h-5 w-5" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -365,7 +372,8 @@ import {
   FaceFrownIcon,
   CheckCircleIcon,
   ChartBarIcon,
-  PencilIcon
+  PencilIcon,
+  TrashIcon
 } from '@heroicons/vue/24/outline';
 
 // Remove PencilIcon from here since it's already imported above
@@ -742,6 +750,48 @@ const viewUserActivity = (user) => {
   // Placeholder function - implement as needed
   console.log('View activity for user:', user.id);
   showToast('User activity feature coming soon');
+};
+
+// Add function to handle delete user confirmation
+const userToDelete = ref(null);
+const showDeleteConfirmation = ref(false);
+const deleting = ref(false);
+
+const confirmDeleteUser = (user) => {
+  if (isCurrentUser(user)) {
+    showToast("You cannot delete your own account");
+    return;
+  }
+  
+  userToDelete.value = user;
+  
+  // Simple confirmation with browser's confirm dialog
+  if (confirm(`Are you sure you want to delete user ${user.firstName} ${user.lastName}?`)) {
+    deleteUser(user.id);
+  }
+};
+
+const deleteUser = async (userId) => {
+  try {
+    deleting.value = true;
+    await firebaseService.deleteUser(userId);
+    
+    // Remove user from local array
+    users.value = users.value.filter(user => user.id !== userId);
+    
+    // If user was in selected users, remove from there too
+    if (selectedUsers.value.includes(userId)) {
+      selectedUsers.value = selectedUsers.value.filter(id => id !== userId);
+    }
+    
+    showToast("User deleted successfully");
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    showToast("Failed to delete user. Please try again.");
+  } finally {
+    deleting.value = false;
+    userToDelete.value = null;
+  }
 };
 </script>
 

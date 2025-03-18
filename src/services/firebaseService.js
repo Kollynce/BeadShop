@@ -132,6 +132,52 @@ export const firebaseService = {
     }
   },
 
+  // Add this new method before the Order operations section
+  async submitVariantRequest(requestData) {
+    try {
+      const variantRequestsRef = collection(db, 'variantRequests');
+      
+      // Prepare the request data with timestamps and status
+      const completeRequest = {
+        productId: requestData.productId,
+        productName: requestData.productName,
+        suggestion: requestData.suggestion,
+        requestedColors: requestData.colors || [],
+        userId: requestData.userId || null,
+        userEmail: requestData.userEmail || 'Anonymous',
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(variantRequestsRef, completeRequest);
+      return {
+        id: docRef.id,
+        ...completeRequest
+      };
+    } catch (error) {
+      console.error('Error submitting variant request:', error);
+      throw error;
+    }
+  },
+
+  // Get all variant requests for admin
+  async getVariantRequests() {
+    try {
+      const requestsRef = collection(db, 'variantRequests');
+      const q = query(requestsRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting variant requests:', error);
+      throw error;
+    }
+  },
+
   // Product operations
   async getProducts() {
     try {
@@ -185,10 +231,18 @@ export const firebaseService = {
       if (!productSnap.exists()) {
         throw new Error(`Product with ID: ${productId} not found`)
       }
-
+      
+      let data = productSnap.data();
+      // Use new default variant structure if missing
+      if (!data.variants) {
+        data.variants = [
+          { name: 'Default', colors: ['#ffffff', '#000000'] }
+        ];
+      }
+      
       return {
         id: productSnap.id,
-        ...productSnap.data()
+        ...data
       }
     } catch (error) {
       console.log(`Firebase: falling back to mock data for product ${productId}`)
@@ -199,30 +253,38 @@ export const firebaseService = {
   // New product management methods
   async createProduct(productData) {
     try {
-      const timestamp = serverTimestamp()
+      const timestamp = serverTimestamp();
       
-      // Clone product data to avoid modifying the original
-      const processedProduct = {...productData};
-      
-      // If the base64 images are too large, it might exceed Firestore document size limits
-      // You may need to split large base64 strings into separate documents if needed
-      
+      // Ensure all product sections have default values if not provided
+      const defaultProductData = {
+        materials: '',
+        dimensions: '',
+        careInstructions: `Store in a cool, dry place away from direct sunlight
+Avoid contact with perfumes, lotions, and chemicals
+Clean gently with a soft, lint-free cloth
+Remove before swimming or bathing`,
+        sizingAndFit: 'Our standard bracelet length is 7.5 inches. Necklaces are available in 16, 18, and 20 inch lengths. Please contact us for custom sizing.',
+        shippingInfo: 'Handmade to order. Please allow 1-3 business days for production plus shipping time.',
+        returnPolicy: 'We accept returns within 14 days of delivery for unworn items in original packaging.',
+        ...productData
+      };
+
       const completeProductData = {
-        ...processedProduct,
+        ...defaultProductData,
         createdAt: timestamp,
         updatedAt: timestamp
-      }
+      };
 
-      const productsRef = collection(db, 'products')
-      const docRef = await addDoc(productsRef, completeProductData)
+      const productsRef = collection(db, 'products');
+      const docRef = await addDoc(productsRef, completeProductData);
 
       return {
         id: docRef.id,
         ...completeProductData
-      }
+      };
     } catch (error) {
-      console.error('Error creating product:', error)
-      throw error
+      console.error('Error creating product:', error);
+      throw error;
     }
   },
 
@@ -545,55 +607,43 @@ export const firebaseService = {
   async getUserOrders(userId) {
     try {
       const ordersRef = collection(db, 'orders');
+      const q = query(
+        ordersRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
       
-      // Use createdAt for consistent sorting (orderDate might be missing or inconsistent)
-      // If you haven't created the index yet, temporarily use a simpler query
-      let querySnapshot;
-      try {
-        const q = query(
-          ordersRef, 
-          where('userId', '==', userId),
-          orderBy('createdAt', 'desc')
-        );
-        querySnapshot = await getDocs(q);
-      } catch (indexError) {
-        // Fallback to a simpler query if index doesn't exist
-        console.warn('Index error, using fallback query:', indexError);
-        const q = query(
-          ordersRef, 
-          where('userId', '==', userId)
-        );
-        querySnapshot = await getDocs(q);
-      }
-      
-      if (querySnapshot.empty) {
-        console.log('No orders found for user:', userId);
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        console.log(`No orders found for user: ${userId}`);
         return [];
       }
       
-      return querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Order data:', doc.id, data); // Debug what's coming from Firestore
-        
-        return {
-          id: doc.id,
-          ...data,
-          // Format timestamps properly for display
-          orderDate: data.orderDate || data.createdAt || new Date(),
-          createdAt: data.createdAt || data.orderDate || new Date(),
-          orderNumber: data.orderNumber || `ORD-${doc.id.substring(0, 6)}`,
-          status: data.status || 'processing',
-          items: data.items || [],
-          total: data.total || 0
-        };
-      });
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
     } catch (error) {
-      console.error('Error getting user orders:', error);
-      return []; // Return empty array instead of throwing, better for UI
+      if (error.code === 'failed-precondition') {
+        // Create the composite index
+        console.warn('Creating required index for orders query...');
+        // Fallback to simple query
+        const ordersRef = collection(db, 'orders'); // Added this line to fix the reference
+        const simpleQuery = query(
+          ordersRef,
+          where('userId', '==', userId)
+        );
+        const snapshot = await getDocs(simpleQuery);
+        return snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+      throw error;
     }
   },
 
-  // Get all orders for admin
+  // Get all orders for admin with user details
   async getAllOrders() {
     try {
       const ordersRef = collection(db, 'orders');
@@ -611,12 +661,63 @@ export const firebaseService = {
         querySnapshot = await getDocs(ordersRef);
       }
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        orderNumber: doc.data().orderNumber || `ORD-${doc.id.substring(0, 6)}`,
-        status: doc.data().status || 'processing'
+      // Get all orders and fetch product details for each order item
+      const orders = await Promise.all(querySnapshot.docs.map(async doc => {
+        const orderData = doc.data();
+        let userEmail = orderData.email;
+        let userName = '';
+        
+        // If we have userId, get user profile for complete details
+        if (orderData.userId) {
+          try {
+            const userProfile = await this.getUserProfile(orderData.userId);
+            userEmail = userEmail || userProfile?.email;
+            if (userProfile?.firstName || userProfile?.lastName) {
+              userName = `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim();
+            }
+          } catch (error) {
+            console.warn(`Could not fetch details for user ${orderData.userId}:`, error);
+          }
+        }
+
+        // If we have firstName/lastName in order data, use that
+        if (orderData.firstName || orderData.lastName) {
+          userName = `${orderData.firstName || ''} ${orderData.lastName || ''}`.trim();
+        }
+
+        // Fetch complete product details for each order item
+        let items = [];
+        if (Array.isArray(orderData.items)) {
+          items = await Promise.all(orderData.items.map(async item => {
+            if (item.productId) {
+              try {
+                const productDetails = await this.getProduct(item.productId);
+                return {
+                  ...item,
+                  name: productDetails.name || item.name || 'Product Not Found',
+                  image: productDetails.images?.[0] || item.image || '/assets/placeholder.jpg'
+                };
+              } catch (error) {
+                console.warn(`Could not fetch product details for ${item.productId}:`, error);
+                return item;
+              }
+            }
+            return item;
+          }));
+        }
+
+        return {
+          id: doc.id,
+          ...orderData,
+          items: items,
+          customerName: userName || 'N/A',
+          email: userEmail || 'N/A',
+          orderNumber: orderData.orderNumber || `ORD-${doc.id.substring(0, 6)}`,
+          status: orderData.status || 'processing'
+        };
       }));
+
+      return orders;
     } catch (error) {
       console.error('Error getting all orders:', error);
       return [];
@@ -706,7 +807,42 @@ export const firebaseService = {
       console.error('Error seeding default admin:', error)
       throw error
     }
-  }
+  },
+
+  // Newsletter subscription
+  async subscribeToNewsletter(email, name) {
+    try {
+      const newslettersRef = collection(db, 'newsletters');
+      
+      // Check if email already exists to prevent duplicates
+      const q = query(newslettersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        // Email already exists
+        return { success: false, message: 'This email is already subscribed.' };
+      }
+      
+      // Add new subscription
+      const subscription = {
+        email: email,
+        name: name || '',
+        subscriptionDate: serverTimestamp(),
+        status: 'active'
+      };
+      
+      const docRef = await addDoc(newslettersRef, subscription);
+      
+      return { 
+        success: true, 
+        message: 'Subscription successful!',
+        id: docRef.id 
+      };
+    } catch (error) {
+      console.error('Error subscribing to newsletter:', error);
+      throw error;
+    }
+  },
 }
 
 export default app

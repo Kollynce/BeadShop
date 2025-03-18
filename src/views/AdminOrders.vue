@@ -49,7 +49,7 @@
         <!-- Average Order Value card -->
         <div class="flex flex-col h-full bg-gradient-to-br from-light-secondary to-cyan-500/10 dark:from-dark-secondary dark:to-cyan-500/20 rounded-xl shadow-lg p-6 border-2 border-cyan-500/20">
           <h3 class="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Avg. Order Value</h3>
-          <p class="text-3xl font-bold text-cyan-500">${{ averageOrderValue.toFixed(2) }}</p>
+          <p class="text-3xl font-bold text-cyan-500">{{ formatCurrency(averageOrderValue) }}</p>
           <p class="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-1">Per order</p>
         </div>
       </div>
@@ -75,7 +75,7 @@
             <input
               v-model="searchTerm"
               type="text"
-              placeholder="Order ID or customer name"
+              placeholder="Search by Order ID, name, or email"
               class="border border-light-neutral-300 dark:border-dark-neutral-600 rounded-lg px-3 py-2 bg-light-secondary dark:bg-dark-secondary text-light-text-primary dark:text-dark-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary"
             />
           </div>
@@ -106,8 +106,14 @@
               </th>
               <th class="px-6 py-3 text-light-text-secondary dark:text-dark-text-secondary font-medium cursor-pointer" @click="sortOrders('customerName')">
                 <div class="flex items-center">
-                  <span>Customer</span>
+                  <span>Customer Name</span>
                   <SortIndicator :active="sortField === 'customerName'" :direction="sortDirection" />
+                </div>
+              </th>
+              <th class="px-6 py-3 text-light-text-secondary dark:text-dark-text-secondary font-medium cursor-pointer" @click="sortOrders('email')">
+                <div class="flex items-center">
+                  <span>Email</span>
+                  <SortIndicator :active="sortField === 'email'" :direction="sortDirection" />
                 </div>
               </th>
               <th class="px-6 py-3 text-light-text-secondary dark:text-dark-text-secondary font-medium cursor-pointer" @click="sortOrders('total')">
@@ -130,6 +136,7 @@
               <td class="px-6 py-4 font-medium">{{ order.orderNumber || `#${order.id.substring(0, 6)}` }}</td>
               <td class="px-6 py-4">{{ formatDate(order.orderDate) }}</td>
               <td class="px-6 py-4">{{ order.customerName || 'Unknown' }}</td>
+              <td class="px-6 py-4">{{ order.email || 'N/A' }}</td>
               <td class="px-6 py-4">{{ formatCurrency(order.total) }}</td>
               <td class="px-6 py-4">
                 <span
@@ -220,9 +227,11 @@
                   </div>
                   <div class="bg-light-secondary dark:bg-dark-secondary p-4 rounded-lg">
                     <h3 class="font-medium text-light-text-primary dark:text-dark-text-primary mb-2">Customer Information</h3>
-                    <p><span class="text-gray-500">Name:</span> {{ selectedOrder?.customerName || 'N/A' }}</p>
+                    <p><span class="text-gray-500">Name:</span> {{ selectedOrder?.customerName }}</p>
                     <p><span class="text-gray-500">Email:</span> {{ selectedOrder?.email || 'N/A' }}</p>
                     <p><span class="text-gray-500">Phone:</span> {{ selectedOrder?.phone || 'N/A' }}</p>
+                    <p v-if="selectedOrder?.shippingAddress"><span class="text-gray-500">Address:</span> {{ selectedOrder?.shippingAddress }}</p>
+                    <p v-if="selectedOrder?.userId"><span class="text-gray-500">Customer ID:</span> {{ selectedOrder?.userId }}</p>
                   </div>
                 </div>
 
@@ -353,6 +362,7 @@ import { ref, computed, onMounted } from 'vue';
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue';
 import { firebaseService } from '../services/firebaseService';
 import { formatCurrency } from '@/utils/currency';
+import { useNotificationStore } from '@/stores/notification';
 
 // State
 const orders = ref([]);
@@ -395,8 +405,14 @@ const filteredOrders = computed(() => {
     const term = searchTerm.value.toLowerCase();
     result = result.filter(order => {
       const orderId = order.orderNumber?.toLowerCase() || order.id.toLowerCase();
-      const customerName = order.customerName?.toLowerCase() || '';
-      return orderId.includes(term) || customerName.includes(term);
+      const firstName = order.firstName?.toLowerCase() || '';
+      const lastName = order.lastName?.toLowerCase() || '';
+      const email = order.email?.toLowerCase() || '';
+      return orderId.includes(term) || 
+             firstName.includes(term) || 
+             lastName.includes(term) || 
+             email.includes(term) ||
+             `${firstName} ${lastName}`.includes(term);
     });
   }
 
@@ -405,7 +421,7 @@ const filteredOrders = computed(() => {
     let valA = a[sortField.value];
     let valB = b[sortField.value];
 
-    // If sorting dates, use the seconds property.
+    // Special handling for orderDate sorting
     if (sortField.value === 'orderDate') {
       valA = valA?.seconds || 0;
       valB = valB?.seconds || 0;
@@ -425,18 +441,73 @@ const loadOrders = async () => {
   loading.value = true;
   try {
     const allOrders = await firebaseService.getAllOrders();
-    orders.value = allOrders;
+    orders.value = allOrders.map(order => {
+      // Construct customer name from firstName and lastName or from order data
+      const firstName = order.firstName || order.shippingInfo?.firstName || '';
+      const lastName = order.lastName || order.shippingInfo?.lastName || '';
+      const customerName = `${firstName} ${lastName}`.trim() || order.customerName || 'N/A';
+      
+      // Get email from order data or shipping info
+      const email = order.email || order.shippingInfo?.email || 'N/A';
+
+      return {
+        ...order,
+        customerName,
+        email
+      };
+    });
   } catch (error) {
     console.error("Error loading orders:", error);
-    // You could add error handling UI here if needed
   } finally {
     loading.value = false;
   }
 };
 
-const viewOrderDetails = (order) => {
-  selectedOrder.value = order;
-  showOrderDetailsModal.value = true;
+const viewOrderDetails = async (order) => {
+  try {
+    // If there's a userId, get the user profile
+    if (order.userId) {
+      const userProfile = await firebaseService.getUserProfile(order.userId);
+      const firstName = order.firstName || order.shippingInfo?.firstName || userProfile?.firstName || '';
+      const lastName = order.lastName || order.shippingInfo?.lastName || userProfile?.lastName || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      const email = order.email || order.shippingInfo?.email || userProfile?.email || 'N/A';
+
+      selectedOrder.value = {
+        ...order,
+        customerDetails: userProfile,
+        customerName: fullName || 'N/A',
+        email
+      };
+    } else {
+      // For guest orders, combine firstName and lastName from order data or shipping info
+      const firstName = order.firstName || order.shippingInfo?.firstName || '';
+      const lastName = order.lastName || order.shippingInfo?.lastName || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      const email = order.email || order.shippingInfo?.email || 'N/A';
+
+      selectedOrder.value = {
+        ...order,
+        customerName: fullName || 'Guest User',
+        email
+      };
+    }
+    showOrderDetailsModal.value = true;
+  } catch (error) {
+    console.error("Error loading customer details:", error);
+    // Fallback to order data
+    const firstName = order.firstName || order.shippingInfo?.firstName || '';
+    const lastName = order.lastName || order.shippingInfo?.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    const email = order.email || order.shippingInfo?.email || 'N/A';
+
+    selectedOrder.value = {
+      ...order,
+      customerName: fullName || 'N/A',
+      email
+    };
+    showOrderDetailsModal.value = true;
+  }
 };
 
 const openUpdateStatus = (order) => {
@@ -450,22 +521,74 @@ const updateOrderStatus = async () => {
   statusUpdateLoading.value = true;
   try {
     await firebaseService.updateOrderStatus(selectedOrder.value.id, newStatus.value);
-
+    
     // Update the order in the local state
     const index = orders.value.findIndex(o => o.id === selectedOrder.value.id);
     if (index !== -1) {
       orders.value[index].status = newStatus.value;
     }
-
+    
     // Update selected order if the details modal is open
     if (selectedOrder.value) {
       selectedOrder.value.status = newStatus.value;
     }
 
+    // Create notifications
+    // Notification for admin
+    await notificationStore.addPersistedNotification({
+      title: 'Order Status Updated',
+      message: `Order #${selectedOrder.value.orderNumber || selectedOrder.value.id.substring(0, 6)} status changed to ${newStatus.value}`,
+      type: 'success',
+      isAdmin: true
+    });
+
+    // If there's a customer ID, create a notification for them too
+    if (selectedOrder.value.userId) {
+      let notificationType;
+      let notificationMessage;
+
+      switch (newStatus.value) {
+        case 'shipped':
+          notificationType = 'info';
+          notificationMessage = `Great news! Your order #${selectedOrder.value.orderNumber} has been shipped and is on its way.`;
+          break;
+        case 'delivered':
+          notificationType = 'success';
+          notificationMessage = `Your order #${selectedOrder.value.orderNumber} has been delivered. Thank you for shopping with us!`;
+          break;
+        case 'cancelled':
+          notificationType = 'error';
+          notificationMessage = `Your order #${selectedOrder.value.orderNumber} has been cancelled. Please contact support if you have any questions.`;
+          break;
+        default:
+          notificationType = 'info';
+          notificationMessage = `Your order #${selectedOrder.value.orderNumber} status has been updated to ${newStatus.value}.`;
+      }
+
+      await notificationStore.addPersistedNotification({
+        title: 'Order Status Update',
+        message: notificationMessage,
+        type: notificationType,
+        userId: selectedOrder.value.userId
+      });
+
+      // Add immediate notification for status update
+      notificationStore.addNotification({
+        title: 'Success',
+        message: `Order status updated to ${newStatus.value}`,
+        type: 'success'
+      });
+    }
+
     showStatusModal.value = false;
   } catch (error) {
     console.error("Error updating order status:", error);
-    // You could add error handling UI here if needed
+    notificationStore.addNotification({
+      title: 'Error',
+      message: `Failed to update order status: ${error.message}`,
+      type: 'error',
+      timeout: 5000
+    });
   } finally {
     statusUpdateLoading.value = false;
   }

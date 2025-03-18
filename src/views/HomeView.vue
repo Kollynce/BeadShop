@@ -8,6 +8,18 @@
       :style="{ backgroundImage: `url(${animatingItem?.image || animatingItem?.imageUrl || getImageUrl('placeholder.jpg')})` }">
     </div>
     
+    <!-- Scroll to top button -->
+    <button 
+      v-show="showScrollTop" 
+      @click="scrollToTop" 
+      class="scroll-to-top-btn fixed bottom-6 right-6 bg-accent-primary hover:bg-accent-secondary text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all duration-300 z-50"
+      aria-label="Scroll to top"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+      </svg>
+    </button>
+    
     <!-- Hero Section -->
     <div class="relative overflow-hidden bg-light-secondary dark:bg-dark-secondary">
       <div class="pt-16 pb-80 sm:pt-24 sm:pb-40 lg:pt-40 lg:pb-48">
@@ -26,15 +38,20 @@
               </span>
             </h1>
             <p class="mt-4 text-xl text-light-text-secondary dark:text-dark-text-secondary">Our handcrafted beaded jewelry pieces combine artistry and elegance, adding the perfect colorful accent to enhance any outfit.</p>
+            
+            <!-- Shop Collection button moved here for mobile - will show on all devices but lg devices will have it in original position -->
+            <div class="mt-6 block lg:hidden">
+              <router-link to="/products" class="inline-block rounded-md border border-transparent bg-btn-primary hover:bg-btn-primary-hover dark:hover:bg-btn-primary-dark px-8 py-3 text-center font-medium text-white">Shop Collection</router-link>
+            </div>
           </div>
           <div>
             <div class="mt-10">
-              <!-- Improved infinite scrolling image grid -->
+              <!-- Improved infinite scrolling image grid with mobile responsiveness -->
               <div aria-hidden="true" class="pointer-events-none lg:absolute lg:inset-y-0 lg:mx-auto lg:w-full lg:max-w-7xl">
                 <div class="absolute transform sm:top-0 sm:left-1/2 sm:translate-x-8 lg:top-1/2 lg:left-1/2 lg:-translate-y-1/2 lg:translate-x-8">
-                  <div class="flex items-center space-x-6 lg:space-x-8">
-                    <!-- First column scrolling up -->
-                    <div class="scroll-container">
+                  <div class="flex items-center justify-center space-x-3 sm:space-x-6 lg:space-x-8 overflow-hidden w-full max-w-screen-sm mx-auto px-4 sm:px-0">
+                    <!-- First column scrolling up - visible on all screens -->
+                    <div class="scroll-container w-1/2 sm:w-auto max-w-[45vw] sm:max-w-none">
                       <div class="scroll-content scroll-up">
                         <!-- Original set -->
                         <div class="h-64 w-full overflow-hidden rounded-lg product-image-container">
@@ -65,8 +82,8 @@
                       </div>
                     </div>
 
-                    <!-- Middle column scrolling down -->
-                    <div class="scroll-container">
+                    <!-- Middle column scrolling down - visible on all screens -->
+                    <div class="scroll-container w-1/2 sm:w-auto">
                       <div class="scroll-content scroll-down">
                         <!-- Original set -->
                         <div class="h-64 w-full overflow-hidden rounded-lg product-image-container">
@@ -97,8 +114,8 @@
                       </div>
                     </div>
 
-                    <!-- Last column scrolling up at a different speed -->
-                    <div class="scroll-container">
+                    <!-- Last column scrolling up at a different speed - hidden on mobile -->
+                    <div class="scroll-container hidden sm:block">
                       <div class="scroll-content scroll-up-slow">
                         <!-- Original set -->
                         <div class="h-64 w-full overflow-hidden rounded-lg product-image-container">
@@ -132,7 +149,8 @@
                 </div>
               </div>
 
-              <router-link to="/products" class="inline-block rounded-md border border-transparent bg-btn-primary hover:bg-btn-primary-hover dark:hover:bg-btn-primary-dark px-8 py-3 text-center font-medium text-white">Shop Collection</router-link>
+              <!-- Original button position - only visible on lg screens -->
+              <router-link to="/products" class="hidden lg:inline-block rounded-md border border-transparent bg-btn-primary hover:bg-btn-primary-hover dark:hover:bg-btn-primary-dark px-8 py-3 text-center font-medium text-white">Shop Collection</router-link>
             </div>
           </div>
         </div>
@@ -167,7 +185,7 @@
                   <h3 class="text-white text-2xl font-bold mb-2">{{ collection.name }}</h3>
                   <p class="text-white text-sm mb-4">{{ collection.description }}</p>
                   <router-link :to="`/products?category=${collection.category}`" 
-                    class="inline-block bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-md transition duration-300">
+                    class="inline-block bg-btn-primary hover:bg-btn-primary-hover text-white font-semibold py-2 px-4 rounded-md transition duration-300">
                     View Collection
                   </router-link>
                 </div>
@@ -183,7 +201,7 @@
       <div class="container mx-auto px-4">
         <div class="flex justify-between items-center mb-10 fade-slide-up">
           <h2 class="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Featured Products</h2>
-          <router-link to="/products" class="text-accent-primary hover:text-accent-secondary font-medium">
+          <router-link to="/products" class="text-btn-primary hover:text-accent-secondary font-medium">
             View all products <span aria-hidden="true">&rarr;</span>
           </router-link>
         </div>
@@ -196,7 +214,8 @@
           <p class="text-light-neutral-600 dark:text-dark-neutral-600">No products found. Please check back later.</p>
         </div>
         
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- Modified grid classes to ensure 3 products per row at medium to large screens -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           <div v-for="(product, index) in featuredProducts" 
               :key="product.id" 
               class="relative fade-slide-up"
@@ -242,7 +261,7 @@
       <div class="mx-auto max-w-2xl lg:max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="bg-gradient-to-r from-accent-quaternary to-accent-secondary rounded-xl shadow-xl overflow-hidden">
           <div class="absolute inset-0 opacity-10">
-            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00TTAgMGg0djRIMHoiLz48L2c+PC9nPjwvc3ZnPg==')]"></div>
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00TTAgMGg0djRIMHoiLz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L3N2Zz4=')]"></div>
           </div>
           
           <div class="relative py-10 px-6 md:px-10">
@@ -335,7 +354,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import { firebaseService } from '../services/firebaseService'
 import { useCartStore } from '@/stores/cart'
 import { mockDataLoader } from '../utils/mockDataLoader'
@@ -610,16 +629,19 @@ const subscribeToNewsletter = async () => {
   newsletter.value.message = '';
   
   try {
-    // Simulate API call with timeout
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Call the Firebase service to save the subscription
+    const result = await firebaseService.subscribeToNewsletter(
+      newsletter.value.email,
+      newsletter.value.name
+    );
     
-    // Here you would typically send the data to your backend/API
-    // await firebaseService.subscribeToNewsletter(newsletter.value.email, newsletter.value.name);
+    newsletter.value.success = result.success;
+    newsletter.value.message = result.message || 'Thank you for subscribing to our newsletter!';
     
-    newsletter.value.success = true;
-    newsletter.value.message = 'Thank you for subscribing to our newsletter!';
-    newsletter.value.name = '';
-    newsletter.value.email = '';
+    if (result.success) {
+      newsletter.value.name = '';
+      newsletter.value.email = '';
+    }
   } catch (error) {
     console.error('Error subscribing to newsletter:', error);
     newsletter.value.success = false;
@@ -695,8 +717,34 @@ onMounted(() => {
     currentTextIndex.value = (currentTextIndex.value + 1) % animatedTexts.length
   }, 3000) // Slightly longer duration for better readability
   
+  // Add scroll event listener
+  window.addEventListener('scroll', handleScroll)
+  
   // ...rest of your existing onMounted code...
 })
+
+onBeforeUnmount(() => {
+  // Clean up scroll event listener
+  window.removeEventListener('scroll', handleScroll)
+})
+
+// Scroll to top functionality
+const showScrollTop = ref(false)
+
+// Function to scroll to top
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
+// Check scroll position and show/hide button
+const handleScroll = () => {
+  showScrollTop.value = window.scrollY > 500
+}
+
+// ...existing code...
 </script>
 
 <style scoped>
@@ -758,13 +806,24 @@ onMounted(() => {
   margin: 0;
 }
 
-.scroll-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+@media (min-width: 640px) {
+  .scroll-container {
+    max-width: 176px; /* Reset to original width on sm screens and above */
+  }
+}
+
+@media (max-width: 639px) {
+  .scroll-container {
+    width: 45%; /* Slightly less than 50% to account for spacing */
+    max-width: 45vw;
+  }
+  
+  /* Make sure the parent container is properly constrained */
+  .absolute.transform {
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
 
 /* Image container styles with improved spacing */
@@ -865,5 +924,26 @@ onMounted(() => {
 
 .product-image-container:hover img {
   transform: scale(1.05); /* Subtle zoom on hover */
+}
+
+/* Scroll to top button styles */
+.scroll-to-top-btn {
+  opacity: 0.8;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.scroll-to-top-btn:hover {
+  opacity: 1;
+  transform: translateY(-5px);
+}
+
+@media (max-width: 640px) {
+  .scroll-to-top-btn {
+    bottom: 4rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 </style>

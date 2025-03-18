@@ -605,6 +605,7 @@ import { useCartStore } from '../stores/cart'
 import { firebaseService } from '../services/firebaseService'
 import { paypalService } from '../services/paypalService'
 import { formatCurrency } from '@/utils/currency'
+import { useNotificationStore } from '@/stores/notification'
 
 // Remove the conflicting import and implement the directive locally
 // import { vMask } from "@vuelidate/validators"
@@ -612,6 +613,7 @@ import { formatCurrency } from '@/utils/currency'
 const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
+const notificationStore = useNotificationStore()
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -784,6 +786,22 @@ const handlePayPalSuccess = async (paypalOrder) => {
     
     await firebaseService.createOrder(orderData)
     cartStore.clearCart()
+    
+    notificationStore.addNotification({
+      title: 'PayPal Payment Successful',
+      message: 'Your payment has been processed successfully',
+      type: 'success',
+      timeout: 5000
+    })
+
+    // Create persisted notification for order confirmation
+    await notificationStore.addPersistedNotification({
+      title: 'Order Confirmation',
+      message: `Your PayPal payment was successful and your order has been confirmed`,
+      type: 'success',
+      userId: authStore.user.uid
+    })
+
     successMsg.value = `Order placed successfully! Payment completed via PayPal.`
     
     setTimeout(() => {
@@ -792,6 +810,12 @@ const handlePayPalSuccess = async (paypalOrder) => {
   } catch (error) {
     console.error('Error processing PayPal order:', error)
     errorMsg.value = 'Failed to process PayPal payment. Please contact support.'
+    notificationStore.addNotification({
+      title: 'PayPal Error',
+      message: 'Failed to process your PayPal payment. Please try again or contact support.',
+      type: 'error',
+      timeout: 5000
+    })
   }
 }
 
@@ -905,6 +929,12 @@ const placeOrder = async () => {
   if (cart.value.length === 0) {
     errorMsg.value = 'Your cart is empty'
     loading.value = false
+    notificationStore.addNotification({
+      title: 'Error',
+      message: 'Cannot place order with empty cart',
+      type: 'error',
+      timeout: 5000
+    })
     return
   }
 
@@ -934,16 +964,44 @@ const placeOrder = async () => {
 
     // Handle M-Pesa payment
     if (selectedPaymentMethod.value === 'mobile-money') {
-      // Implement M-Pesa payment integration here
-      // You would typically call your backend API to initiate the M-Pesa payment
       await initiateGepPayment(orderRef.id)
+      
+      // Create persisted notification for payment status
+      await notificationStore.addPersistedNotification({
+        title: 'Payment Required',
+        message: `Please complete M-Pesa payment for order ${orderNumber}`,
+        type: 'warning',
+        userId: authStore.user.uid
+      })
     }
 
     // Clear the cart
     cartStore.clearCart()
 
-    // Show success message
+    // Show success message and notification
     successMsg.value = getSuccessMessage(orderNumber)
+    notificationStore.addNotification({
+      title: 'Order Placed',
+      message: `Order ${orderNumber} has been placed successfully`,
+      type: 'success',
+      timeout: 5000
+    })
+
+    // Create a persisted notification for order confirmation
+    await notificationStore.addPersistedNotification({
+      title: 'Order Confirmation',
+      message: `Your order ${orderNumber} has been received and is being processed`,
+      type: 'success',
+      userId: authStore.user.uid
+    })
+
+    // Create notification for admin
+    await notificationStore.addPersistedNotification({
+      title: 'New Order Received',
+      message: `New order ${orderNumber} received from ${shippingInfo.value.firstName} ${shippingInfo.value.lastName}`,
+      type: 'info',
+      isAdmin: true
+    })
 
     // Redirect to orders page after a delay
     setTimeout(() => {
@@ -952,6 +1010,12 @@ const placeOrder = async () => {
   } catch (error) {
     errorMsg.value = 'Failed to place order. Please try again.'
     console.error('Error placing order:', error)
+    notificationStore.addNotification({
+      title: 'Order Failed',
+      message: 'Failed to place your order. Please try again.',
+      type: 'error',
+      timeout: 5000
+    })
   } finally {
     loading.value = false
   }
@@ -1124,7 +1188,7 @@ const vMask = vMaskDirective
 
 :root[data-theme="dark"] .btn-secondary {
   background-color: var(--dark-neutral-700);
-  color: var(--dark-text-primary);
+  color: var (--dark-text-primary);
 }
 :root[data-theme="dark"] .btn-secondary:hover {
   background-color: var (--dark-neutral-600);

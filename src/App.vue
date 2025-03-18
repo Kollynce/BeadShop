@@ -7,6 +7,9 @@
     </main>
     
     <TheFooter />
+    
+    <!-- Add notification container -->
+    <NotificationContainer />
   </div>
 </template>
 
@@ -18,6 +21,7 @@ import TheFooter from './components/layout/TheFooter.vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { useAuthStore } from './stores/auth'
 import { firebaseService } from './services/firebaseService'
+import NotificationContainer from './components/notifications/NotificationContainer.vue'
 
 const themeStore = useThemeStore()
 const auth = getAuth()
