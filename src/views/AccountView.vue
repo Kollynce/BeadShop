@@ -82,7 +82,10 @@
 
             <TabPanels class="focus:outline-none">
               <!-- Profile Tab Panel -->
-              <TabPanel :class="getTransitionClasses(200)" class="focus:outline-none">
+              <TabPanel :class="getTransitionClasses(200)" class="focus:outline-none space-y-6">
+                <!-- Email Verification Component -->
+                <EmailVerificationStatus v-if="authStore.isAuthenticated" />
+
                 <div class="bg-white dark:bg-dark-neutral-800 shadow-sm rounded-lg overflow-hidden ring-1 ring-gray-900/5 dark:ring-dark-neutral-700">
                   <div class="bg-gradient-to-r from-accent-quaternary to-accent-secondary px-6 py-4">
                     <div class="flex justify-between items-center">
@@ -376,6 +379,7 @@ import { formatCurrency } from '@/utils/currency'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels, TransitionRoot, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { CheckIcon, XMarkIcon, PencilIcon, ShoppingBagIcon, CalendarIcon, ChevronRightIcon, PhotoIcon } from '@heroicons/vue/24/outline'
 import { getImageUrl } from '../utils/imageLoader'
+import EmailVerificationStatus from '@/components/account/EmailVerificationStatus.vue'
 
 const authStore = useAuthStore()
 const userProfile = ref(null)

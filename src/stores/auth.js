@@ -5,7 +5,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  sendEmailVerification
 } from 'firebase/auth'
 import { firebaseService } from '../services/firebaseService'
 import router from '../router'
@@ -92,6 +93,7 @@ export const useAuthStore = defineStore('auth', {
                   uid: firebaseUser.uid,
                   email: firebaseUser.email,
                   displayName: firebaseUser.displayName || userProfile?.displayName,
+                  emailVerified: firebaseUser.emailVerified,
                   isAdmin: Boolean(userProfile?.isAdmin),
                   ...userProfile
                 };
@@ -156,8 +158,19 @@ export const useAuthStore = defineStore('auth', {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
+          emailVerified: userCredential.user.emailVerified,
           isAdmin: false
         };
+        
+        // Check if email is verified
+        if (!userCredential.user.emailVerified) {
+          notificationStore.addNotification({
+            title: 'Email Not Verified',
+            message: 'Please check your inbox and verify your email to access all features.',
+            type: 'warning',
+            timeout: 6000
+          });
+        }
         
         localStorage.setItem('userData', JSON.stringify(this.user));
         
@@ -222,7 +235,11 @@ export const useAuthStore = defineStore('auth', {
       const notificationStore = useNotificationStore();
       try {
         this.error = null;
+        this.loading = true;
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Send email verification
+        await sendEmailVerification(userCredential.user);
         
         if (userData) {
           await firebaseService.createUserProfile(userCredential.user.uid, userData);
@@ -230,18 +247,29 @@ export const useAuthStore = defineStore('auth', {
         
         notificationStore.addNotification({
           title: 'Welcome!',
-          message: `Account successfully created for ${email}`,
+          message: `Account successfully created for ${email}. Please check your inbox to verify your email address.`,
           type: 'success',
-          timeout: 3000
+          timeout: 8000
         });
 
         // Create a persisted welcome notification for the new user
         await notificationStore.addPersistedNotification({
           title: 'Welcome to BeadShop',
-          message: 'Thank you for joining our community! Feel free to explore our products and start shopping.',
+          message: 'Thank you for joining our community! Please verify your email to unlock all features. Feel free to explore our products and start shopping.',
           type: 'info',
           userId: userCredential.user.uid
         });
+        
+        // Store user data including verification status
+        this.user = {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          emailVerified: false,
+          ...userData
+        };
+        
+        localStorage.setItem('userData', JSON.stringify(this.user));
         
         router.push('/');
         return userCredential;
@@ -254,6 +282,63 @@ export const useAuthStore = defineStore('auth', {
           timeout: 5000
         });
         throw e;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Send verification email to currently logged in user
+    async sendVerificationEmail() {
+      const notificationStore = useNotificationStore();
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error('No user is currently logged in');
+        }
+        
+        await sendEmailVerification(currentUser);
+        
+        notificationStore.addNotification({
+          title: 'Verification Email Sent',
+          message: `A verification email has been sent to ${currentUser.email}. Please check your inbox.`,
+          type: 'success',
+          timeout: 5000
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('Error sending verification email:', error);
+        notificationStore.addNotification({
+          title: 'Error',
+          message: `Failed to send verification email: ${error.message}`,
+          type: 'error',
+          timeout: 5000
+        });
+        throw error;
+      }
+    },
+    
+    // Check if current user's email is verified (forces a refresh of the token)
+    async checkEmailVerification() {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          return false;
+        }
+        
+        // Reload user to get the latest email verification status
+        await currentUser.reload();
+        
+        // Update user state with latest verification status
+        if (this.user) {
+          this.user.emailVerified = currentUser.emailVerified;
+          localStorage.setItem('userData', JSON.stringify(this.user));
+        }
+        
+        return currentUser.emailVerified;
+      } catch (error) {
+        console.error('Error checking email verification:', error);
+        return false;
       }
     },
 
@@ -285,6 +370,12 @@ export const useAuthStore = defineStore('auth', {
           };
         }
         
+        // Get email verification status from Firebase Auth
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          this.user.emailVerified = currentUser.emailVerified;
+        }
+        
         // Update localStorage with complete data
         localStorage.setItem('userData', JSON.stringify(this.user));
         
@@ -299,20 +390,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Make sure logout clears localStorage
-    async logout() {
-      try {
-        await signOut(auth);
-        this.user = null;
-        localStorage.removeItem('userIsAdmin');
-        localStorage.removeItem('userData');
-        router.push('/');
-      } catch (e) {
-        this.error = e.message;
-        throw e;
-      }
-    },
-    
     async setUser(userData) {
       if (userData) {
         // Get the complete user profile including admin status
@@ -321,6 +398,7 @@ export const useAuthStore = defineStore('auth', {
         
         this.user = {
           ...userData,
+          emailVerified: userData.emailVerified,
           isAdmin: Boolean(userProfile?.isAdmin),
           ...userProfile
         };
@@ -340,6 +418,7 @@ export const useAuthStore = defineStore('auth', {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
+          emailVerified: firebaseUser.emailVerified,
           isAdmin: Boolean(userProfile?.isAdmin),
           ...userProfile
         };
@@ -347,6 +426,7 @@ export const useAuthStore = defineStore('auth', {
         if (this.user.isAdmin) {
           localStorage.setItem('userIsAdmin', 'true');
         }
+        localStorage.setItem('userData', JSON.stringify(this.user));
         return this.user;
       } catch (error) {
         console.error('Error restoring session:', error);
@@ -390,6 +470,9 @@ export const useAuthStore = defineStore('auth', {
     },
     isAuthenticated: (state) => {
       return Boolean(state.user);
+    },
+    isEmailVerified: (state) => {
+      return Boolean(state.user?.emailVerified);
     },
     getUser: (state) => {
       return state.user;
