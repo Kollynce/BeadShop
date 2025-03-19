@@ -128,6 +128,13 @@ const routes = [
       title: 'Notifications'
     }
   },
+  // Privacy Policy Route
+  {
+    path: '/privacy-policy',
+    name: 'privacy-policy',
+    component: () => import('../views/PrivacyPolicyView.vue'),
+    meta: { title: 'Privacy Policy' }
+  },
   // Catch-all route - must be last
   {
     path: '/:pathMatch(.*)*',

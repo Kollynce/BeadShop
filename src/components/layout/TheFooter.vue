@@ -76,8 +76,9 @@ import { getPublicImageUrl } from '@/utils/imageLoader';
       <div class="mt-10 pt-8 border-t border-light-neutral-200 dark:border-dark-neutral-600 text-center">
         <p class="text-sm text-light-neutral-600 dark:text-dark-neutral-600">&copy; {{ new Date().getFullYear() }} Sticky Kreation . All rights reserved.</p>
         <div class="mt-2 flex justify-center space-x-6 text-xs">
-          <a href="#" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Privacy Policy</a>
+          <RouterLink to="/privacy-policy" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Privacy Policy</RouterLink>
           <a href="#" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Terms of Service</a>
+          <a href="#" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Cookie Policy</a>
           <a href="#" class="text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Accessibility</a>
         </div>
       </div>

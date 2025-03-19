@@ -867,6 +867,84 @@ Remove before swimming or bathing`,
       throw error;
     }
   },
+
+  // Cookie consent management
+  async recordUserCookieConsent(userId, consentData) {
+    try {
+      // Add consent record to a dedicated collection
+      const consentRef = collection(db, 'cookieConsents');
+      
+      // Add document with user ID
+      await addDoc(consentRef, {
+        userId: userId,
+        ...consentData,
+        createdAt: serverTimestamp()
+      });
+      
+      // Optionally, also update the user's profile with their latest consent status
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        // Only update user profile if it exists
+        await updateDoc(userRef, {
+          cookiePreferences: {
+            necessary: consentData.necessary,
+            functional: consentData.functional,
+            analytics: consentData.analytics, 
+            marketing: consentData.marketing,
+            lastUpdated: consentData.lastUpdated || new Date().toISOString()
+          }
+        });
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error recording cookie consent:', error);
+      return false;
+    }
+  },
+  
+  // For GDPR compliance - allow users to retrieve their consent history
+  async getUserCookieConsentHistory(userId) {
+    try {
+      const consentRef = collection(db, 'cookieConsents');
+      const q = query(
+        consentRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting cookie consent history:', error);
+      return [];
+    }
+  },
+  
+  // For GDPR compliance - delete user's consent data on request
+  async deleteUserCookieConsent(userId) {
+    try {
+      const consentRef = collection(db, 'cookieConsents');
+      const q = query(consentRef, where('userId', '==', userId));
+      const querySnapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      querySnapshot.forEach(docSnapshot => {
+        batch.delete(docSnapshot.ref);
+      });
+      
+      await batch.commit();
+      return true;
+    } catch (error) {
+      console.error('Error deleting cookie consent data:', error);
+      return false;
+    }
+  },
 }
 
 export default app
