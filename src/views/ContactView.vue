@@ -30,7 +30,7 @@
       <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mt-16 grid max-w-7xl grid-cols-1 gap-x-8 gap-y-20 lg:grid-cols-12">
           <!-- Contact information cards - 5 columns -->
-          <div class="lg:col-span-5 space-y-8 animate-slideInLeft">
+          <div class="lg:col-span-5 space-y-8 mb-8 animate-slideInLeft">
             <!-- Contact card -->
             <div class="bg-light-primary dark:bg-dark-primary rounded-xl shadow-lg ring-1 ring-light-neutral-300 dark:ring-dark-neutral-700 p-8 hover:shadow-xl transition-all duration-300">
               <h3 class="text-xl font-semibold leading-7 text-light-text-primary dark:text-dark-text-primary mb-6">
@@ -40,7 +40,7 @@
                 <div class="flex items-center gap-x-4 group">
                   <dt class="flex-none">
                     <span class="sr-only">Address</span>
-                    <MapPinIcon class="h-6 w-6 text-accent-primary group-hover:scale-110 transition-transform" aria-hidden="true" />
+                    <MapPinIcon class="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" aria-hidden="true" />
                   </dt>
                   <dd class="text-light-text-secondary dark:text-dark-text-secondary">
                     <p class="font-medium">Nairobi Kenya</p>
@@ -50,10 +50,10 @@
                 <div class="flex items-center gap-x-4 group">
                   <dt class="flex-none">
                     <span class="sr-only">Telephone</span>
-                    <PhoneIcon class="h-6 w-6 text-accent-primary group-hover:scale-110 transition-transform" aria-hidden="true" />
+                    <PhoneIcon class="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" aria-hidden="true" />
                   </dt>
                   <dd>
-                    <a class="text-light-text-primary dark:text-dark-text-primary hover:text-accent-primary transition-colors" 
+                    <a class="text-light-text-primary dark:text-dark-text-primary hover:text-orange-500 transition-colors" 
                        href="tel:+2547 4141 4271">
                       +2547 4141 4261
                     </a>
@@ -62,10 +62,10 @@
                 <div class="flex items-center gap-x-4 group">
                   <dt class="flex-none">
                     <span class="sr-only">Email</span>
-                    <EnvelopeIcon class="h-6 w-6 text-accent-primary group-hover:scale-110 transition-transform" aria-hidden="true" />
+                    <EnvelopeIcon class="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" aria-hidden="true" />
                   </dt>
                   <dd>
-                    <a class="text-light-text-primary dark:text-dark-text-primary hover:text-accent-primary transition-colors" 
+                    <a class="text-light-text-primary dark:text-dark-text-primary hover:text-orange-500 transition-colors" 
                        href="mailto:hello@kreativekanvas.shop">
                       hello@kreativekanvas.shop
                     </a>
@@ -82,7 +82,7 @@
               <dl class="space-y-4 text-sm leading-6">
                 <div class="flex items-center gap-x-4">
                   <dt class="flex-none">
-                    <ClockIcon class="h-6 w-6 text-accent-primary" aria-hidden="true" />
+                    <ClockIcon class="h-6 w-6 text-orange-500" aria-hidden="true" />
                   </dt>
                   <dd class="text-light-text-secondary dark:text-dark-text-secondary space-y-2">
                     <div class="flex justify-between items-center">
@@ -106,7 +106,7 @@
             <div class="bg-light-primary dark:bg-dark-primary rounded-xl shadow-lg ring-1 ring-light-neutral-300 dark:ring-dark-neutral-700 overflow-hidden hover:shadow-xl transition-all duration-300">
               <div class="p-8">
                 <h3 class="text-xl font-semibold leading-7 text-light-text-primary dark:text-dark-text-primary mb-6 flex items-center">
-                  <MapPinIcon class="h-6 w-6 text-accent-primary mr-2" />
+                  <MapPinIcon class="h-6 w-6 text-orange-500 mr-2" />
                   Our Location
                 </h3>
                 
@@ -121,7 +121,7 @@
                     href="https://www.google.com/maps/dir/?api=1&destination=-1.4774,36.9584&destination_place_id=Kitengela+Nairobi+Kenya" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    class="inline-flex items-center justify-center gap-2 bg-accent-primary hover:bg-accent-primary-dark text-white px-4 py-2 rounded-md transition-colors"
+                    class="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors"
                   >
                     <MapPinIcon class="h-5 w-5" />
                     <span class="font-medium">View on Google Maps</span>
@@ -134,79 +134,123 @@
           <!-- Contact form - 7 columns -->
           <div class="lg:col-span-7 animate-slideInRight">
             <div class="bg-light-primary dark:bg-dark-primary rounded-xl shadow-lg ring-1 ring-light-neutral-300 dark:ring-dark-neutral-700 p-8">
-              <h3 class="text-xl font-semibold leading-7 text-light-text-primary dark:text-dark-text-primary mb-6">
+              <h3 class="text-2xl font-semibold leading-7 text-light-text-primary dark:text-dark-text-primary mb-8">
                 Send us a Message
               </h3>
               
               <form @submit.prevent="submitForm" class="space-y-6">
                 <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-6">
                   <div>
-                    <label for="first-name" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary">First name</label>
-                    <div class="mt-2">
-                      <input v-model="form.firstName" type="text" id="first-name" autocomplete="given-name"  
-                        class="block w-full rounded-md border-0 py-1.5 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-inset focus:ring-accent-primary sm:text-sm sm:leading-6"
-                        :class="{ 'ring-red-500': errors.firstName }">
+                    <label for="first-name" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                      First name
+                    </label>
+                    <div class="relative">
+                      <input 
+                        v-model="form.firstName" 
+                        type="text" 
+                        id="first-name" 
+                        autocomplete="given-name"  
+                        class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                        :class="{ 'ring-red-500': errors.firstName }"
+                      >
                       <p v-if="errors.firstName" class="mt-2 text-sm text-red-600">{{ errors.firstName }}</p>
                     </div>
                   </div>
 
                   <div>
-                    <label for="last-name" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary">Last name</label>
-                    <div class="mt-2">
-                      <input v-model="form.lastName" type="text" id="last-name" autocomplete="family-name" 
-                        class="block w-full rounded-md border-0 py-1.5 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-inset focus:ring-accent-primary sm:text-sm sm:leading-6"
-                        :class="{ 'ring-red-500': errors.lastName }">
+                    <label for="last-name" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                      Last name
+                    </label>
+                    <div class="relative">
+                      <input 
+                        v-model="form.lastName" 
+                        type="text" 
+                        id="last-name" 
+                        autocomplete="family-name" 
+                        class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                        :class="{ 'ring-red-500': errors.lastName }"
+                      >
                       <p v-if="errors.lastName" class="mt-2 text-sm text-red-600">{{ errors.lastName }}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label for="email" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary">Email</label>
-                  <div class="mt-2">
-                    <input v-model="form.email" id="email" name="email" type="email" autocomplete="email" 
-                      class="block w-full rounded-md border-0 py-1.5 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-inset focus:ring-accent-primary sm:text-sm sm:leading-6"
-                      :class="{ 'ring-red-500': errors.email }">
+                  <label for="email" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                    Email
+                  </label>
+                  <div class="relative">
+                    <input 
+                      v-model="form.email" 
+                      id="email" 
+                      name="email" 
+                      type="email" 
+                      autocomplete="email" 
+                      class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                      :class="{ 'ring-red-500': errors.email }"
+                    >
                     <p v-if="errors.email" class="mt-2 text-sm text-red-600">{{ errors.email }}</p>
                   </div>
                 </div>
 
                 <div>
-                  <label for="subject" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary">Subject</label>
-                  <div class="mt-2">
-                    <input v-model="form.subject" type="text" id="subject"  
-                      class="block w-full rounded-md border-0 py-1.5 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-inset focus:ring-accent-primary sm:text-sm sm:leading-6"
-                      :class="{ 'ring-red-500': errors.subject }">
+                  <label for="subject" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                    Subject
+                  </label>
+                  <div class="relative">
+                    <input 
+                      v-model="form.subject" 
+                      type="text" 
+                      id="subject"  
+                      class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                      :class="{ 'ring-red-500': errors.subject }"
+                    >
                     <p v-if="errors.subject" class="mt-2 text-sm text-red-600">{{ errors.subject }}</p>
                   </div>
                 </div>
 
                 <div>
-                  <label for="message" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary">Message</label>
-                  <div class="mt-2">
-                    <textarea v-model="form.message" id="message" rows="4" 
-                      class="block w-full rounded-md border-0 py-1.5 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-inset focus:ring-accent-primary sm:text-sm sm:leading-6"
-                      :class="{ 'ring-red-500': errors.message }"></textarea>
+                  <label for="message" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                    Message
+                  </label>
+                  <div class="relative">
+                    <textarea 
+                      v-model="form.message" 
+                      id="message" 
+                      rows="4" 
+                      class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                      :class="{ 'ring-red-500': errors.message }"
+                    ></textarea>
                     <p v-if="errors.message" class="mt-2 text-sm text-red-600">{{ errors.message }}</p>
                   </div>
                 </div>
 
-                <div class="flex justify-end">
-                  <button type="submit" 
+                <div class="flex justify-end pt-4">
+                  <button 
+                    type="submit" 
                     :disabled="isSubmitting"
-                    class="rounded-btn bg-btn-primary hover:bg-btn-primary-hover active:bg-btn-primary-dark text-white py-2.5 px-3.5 text-sm font-semibold shadow-btn hover:shadow-btn-hover transition-btn disabled:bg-light-neutral-300 dark:disabled:bg-dark-neutral-600">
+                    class="inline-flex items-center justify-center rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    <span v-if="isSubmitting" class="inline-block animate-spin mr-2">
+                      <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </span>
                     {{ isSubmitting ? 'Sending...' : 'Send Message' }}
                   </button>
                 </div>
               </form>
 
-              <div v-if="formSubmitted" class="mt-6 rounded-md bg-green-50 dark:bg-dark-neutral-800 p-4">
+              <div v-if="formSubmitted" class="mt-6 rounded-lg bg-green-50 dark:bg-opacity-10 p-4">
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <CheckCircleIcon class="h-5 w-5 text-green-400" aria-hidden="true" />
+                    <CheckCircleIcon class="h-5 w-5 text-orange-500" aria-hidden="true" />
                   </div>
                   <div class="ml-3">
-                    <div class="text-sm font-medium text-green-800 dark:text-green-200 text-justify">Thank you for your message! We'll get back to you soon.</div>
+                    <div class="text-sm font-medium text-green-800 dark:text-green-200">
+                      Thank you for your message! We'll get back to you soon.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -355,44 +399,5 @@ const submitForm = async () => {
 
 .animate-slideInRight {
   animation: slideInRight 0.8s ease-out;
-}
-
-.contact-form input[type="email"],
-.contact-form input[type="text"],
-.contact-form textarea {
-  width: 100%;
-  padding: 0.5rem 1rem;
-  background-color: var(--light-primary);
-  color: var(--light-text-primary);
-  border-color: var(--light-neutral-300);
-  outline: none;
-  transition: all 0.2s;
-  border-radius: 0.375rem;
-}
-
-.dark .contact-form input[type="email"],
-.dark .contact-form input[type="text"],
-.dark .contact-form textarea {
-  background-color: var(--dark-primary);
-  color: var(--dark-text-primary);
-  border-color: var(--dark-neutral-700);
-}
-
-.contact-form input:focus,
-.contact-form textarea:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-alpha);
-}
-
-.contact-form label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  color: var(--light-text-primary);
-}
-
-.dark .contact-form label {
-  color: var(--dark-text-primary);
 }
 </style>

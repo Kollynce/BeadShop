@@ -123,17 +123,17 @@
             </defs>
           </svg>
           <div class="mx-auto max-w-md text-center lg:mx-0 lg:flex-auto lg:py-32 lg:text-left">
-            <h2 class="text-3xl font-bold tracking-tight text-light-text-primary sm:text-4xl">Visit Our Workshop</h2>
+            <h2 class="text-3xl font-bold tracking-tight text-light-text-primary sm:text-4xl">Custom Design Service</h2>
             <p class="mt-6 text-lg leading-8 text-light-text-primary/80">
-              See our jewelry making process firsthand and discuss custom pieces with our designers.
+              Have a unique vision? Let us bring your dream jewelry to life. Request a custom design or visit our workshop to discuss your ideas.
             </p>
-            <div class="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
-              <RouterLink to="/contact" 
-                class="rounded-btn bg-btn-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-btn hover:bg-btn-primary-hover hover:shadow-btn-hover transition-btn">
-                Schedule a Visit
-              </RouterLink>
+            <div class="mt-10 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:items-center sm:justify-center sm:gap-x-6 lg:justify-start">
+              <button @click="showCustomDesignModal = true"
+                class="rounded-btn bg-btn-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-btn hover:bg-btn-primary-hover hover:shadow-btn-hover transition-btn text-center">
+                Request Custom Design
+              </button>
               <RouterLink to="/products" 
-                class="text-sm font-semibold leading-6 text-light-text-primary hover:text-accent-secondary transition-colors">
+                class="text-sm font-semibold leading-6 text-light-text-primary hover:text-accent-secondary transition-colors text-center">
                 Shop Our Collection <span aria-hidden="true">→</span>
               </RouterLink>
             </div>
@@ -150,12 +150,177 @@
       </div>
     </div>
   </div>
+
+  <!-- Custom Design Modal -->
+  <div v-if="showCustomDesignModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showCustomDesignModal = false"></div>
+      <div class="inline-block align-bottom bg-white dark:bg-dark-secondary rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+        <div class="absolute top-0 right-0 pt-4 pr-4">
+          <button @click="showCustomDesignModal = false" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">Close</span>
+            <svg class="h-6 w-6" fill="none" viewBox="0  0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form @submit.prevent="submitCustomDesignRequest" class="space-y-6">
+          <h3 class="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary">Custom Design Request</h3>
+          <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-6">
+            <div>
+              <label for="first-name" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                First name
+              </label>
+              <div class="relative">
+                <input 
+                  v-model="customDesignForm.firstName" 
+                  type="text" 
+                  id="first-name" 
+                  autocomplete="given-name"  
+                  class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                  :class="{ 'ring-red-500': errors.firstName }"
+                  required
+                >
+                <p v-if="errors.firstName" class="mt-2 text-sm text-red-600">{{ errors.firstName }}</p>
+              </div>
+            </div>
+
+            <div>
+              <label for="last-name" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+                Last name
+              </label>
+              <div class="relative">
+                <input 
+                  v-model="customDesignForm.lastName" 
+                  type="text" 
+                  id="last-name" 
+                  autocomplete="family-name" 
+                  class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                  :class="{ 'ring-red-500': errors.lastName }"
+                  required
+                >
+                <p v-if="errors.lastName" class="mt-2 text-sm text-red-600">{{ errors.lastName }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+              Phone Number
+            </label>
+            <div class="relative">
+              <input 
+                v-model="customDesignForm.phone" 
+                id="phone" 
+                type="tel" 
+                autocomplete="tel" 
+                class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                :class="{ 'ring-red-500': errors.phone }"
+                required
+              >
+              <p v-if="errors.phone" class="mt-2 text-sm text-red-600">{{ errors.phone }}</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+              Email
+            </label>
+            <div class="relative">
+              <input 
+                v-model="customDesignForm.email" 
+                id="email" 
+                name="email" 
+                type="email" 
+                autocomplete="email" 
+                class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                :class="{ 'ring-red-500': errors.email }"
+                required
+              >
+              <p v-if="errors.email" class="mt-2 text-sm text-red-600">{{ errors.email }}</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+              Design Description
+            </label>
+            <div class="relative">
+              <textarea 
+                v-model="customDesignForm.description" 
+                id="description" 
+                rows="4" 
+                class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                :class="{ 'ring-red-500': errors.description }"
+                required
+              ></textarea>
+              <p v-if="errors.description" class="mt-2 text-sm text-red-600">{{ errors.description }}</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="budget" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">
+              Budget Range
+            </label>
+            <div class="relative">
+              <select 
+                v-model="customDesignForm.budget" 
+                id="budget" 
+                class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                :class="{ 'ring-red-500': errors.budget }"
+                required
+              >
+                <option value="">Select a range</option>
+                <option value="0-500">$0 - $500</option>
+                <option value="501-1000">$501 - $1,000</option>
+                <option value="1001-2000">$1,001 - $2,000</option>
+                <option value="2000+">$2,000+</option>
+              </select>
+              <p v-if="errors.budget" class="mt-2 text-sm text-red-600">{{ errors.budget }}</p>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <button 
+              type="submit" 
+              :disabled="isSubmitting"
+              class="inline-flex items-center justify-center rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              <span v-if="isSubmitting" class="inline-block animate-spin mr-2">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              {{ isSubmitting ? 'Sending...' : 'Submit Request' }}
+            </button>
+          </div>
+        </form>
+
+        <div v-if="formSubmitted" class="mt-6 rounded-lg bg-green-50 dark:bg-opacity-10 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <CheckCircleIcon class="h-5 w-5 text-orange-500" aria-hidden="true" />
+            </div>
+            <div class="ml-3">
+              <div class="text-sm font-medium text-green-800 dark:text-green-200">
+                Thank you for your custom design request! We'll get back to you soon.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { RouterLink } from 'vue-router';
 import { defineComponent } from 'vue';
-import { onMounted } from 'vue';
+import { onMounted, ref, reactive } from 'vue';
+import { firebaseService } from '../services/firebaseService';
+import { useNotificationStore } from '../stores/notification';
+import { CheckCircleIcon } from '@heroicons/vue/24/outline';
 
 // Add intersection observer to handle animations
 onMounted(() => {
@@ -245,6 +410,123 @@ const team = [
     image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=928&q=80'
   },
 ];
+
+const showCustomDesignModal = ref(false);
+const customDesignForm = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',  // Add phone field
+  description: '',
+  budget: ''
+});
+
+const errors = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',  // Add phone field
+  description: '',
+  budget: ''
+});
+
+const isSubmitting = ref(false);
+const formSubmitted = ref(false);
+
+const validateForm = () => {
+  let valid = true;
+  
+  // Reset errors
+  Object.keys(errors).forEach(key => errors[key] = '');
+  
+  if (!customDesignForm.value.firstName.trim()) {
+    errors.firstName = 'First name is required';
+    valid = false;
+  }
+  
+  if (!customDesignForm.value.lastName.trim()) {
+    errors.lastName = 'Last name is required';
+    valid = false;
+  }
+  
+  if (!customDesignForm.value.email.trim()) {
+    errors.email = 'Email is required';
+    valid = false;
+  } else if (!/^\S+@\S+\.\S+$/.test(customDesignForm.value.email)) {
+    errors.email = 'Please enter a valid email address';
+    valid = false;
+  }
+  
+  if (!customDesignForm.value.phone.trim()) {
+    errors.phone = 'Phone number is required';
+    valid = false;
+  } else if (!/^\+?[\d\s-]+$/.test(customDesignForm.value.phone)) {
+    errors.phone = 'Please enter a valid phone number';
+    valid = false;
+  }
+  
+  if (!customDesignForm.value.description.trim()) {
+    errors.description = 'Design description is required';
+    valid = false;
+  }
+  
+  if (!customDesignForm.value.budget) {
+    errors.budget = 'Please select a budget range';
+    valid = false;
+  }
+  
+  return valid;
+};
+
+const submitCustomDesignRequest = async () => {
+  if (!validateForm()) return;
+  
+  isSubmitting.value = true;
+  const notificationStore = useNotificationStore();
+  
+  try {
+    // Submit to Firebase
+    await firebaseService.submitCustomDesign({
+      firstName: customDesignForm.value.firstName,
+      lastName: customDesignForm.value.lastName,
+      email: customDesignForm.value.email,
+      phone: customDesignForm.value.phone,  // Add phone field
+      description: customDesignForm.value.description,
+      budget: customDesignForm.value.budget
+    });
+    
+    // Reset form
+    customDesignForm.value = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',  // Add phone field
+      description: '',
+      budget: ''
+    };
+    
+    // Show success message
+    formSubmitted.value = true;
+    notificationStore.addNotification({
+      type: 'success',
+      message: 'Your custom design request has been submitted successfully! We will contact you soon.'
+    });
+    
+    // Close modal after delay
+    setTimeout(() => {
+      showCustomDesignModal.value = false;
+      formSubmitted.value = false;
+    }, 3000);
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    notificationStore.addNotification({
+      type: 'error',
+      message: 'There was an error submitting your request. Please try again.'
+    });
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 </script>
 
 <style scoped>

@@ -261,7 +261,7 @@
       <div class="mx-auto max-w-2xl lg:max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="bg-gradient-to-r from-accent-quaternary to-accent-secondary rounded-xl shadow-xl overflow-hidden">
           <div class="absolute inset-0 opacity-10">
-            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00TTAgMGg0djRIMHoiLz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L3N2Zz4=')]"></div>
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00TTAgMGg0djRIMHoiLz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L2c+PC9nPjwvZz48L3N2Zz4=')]"></div>
           </div>
           
           <div class="relative py-10 px-6 md:px-10">
@@ -302,31 +302,34 @@
                   <form @submit.prevent="subscribeToNewsletter" class="space-y-4">
                     <h4 class="text-gray-800 text-xl font-semibold mb-4">Subscribe to our newsletter</h4>
                     <div>
-                      <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                      <input 
-                        type="text" 
-                        id="fullName" 
-                        v-model="newsletter.name" 
-                        placeholder="Enter your name" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                      >
+                      <label for="fullName" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">Full Name</label>
+                      <div class="relative">
+                        <input 
+                          type="text" 
+                          id="fullName" 
+                          v-model="newsletter.name" 
+                          placeholder="Enter your name" 
+                          class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                        >
+                      </div>
                     </div>
                     <div>
-                      <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                      <input 
-                        type="email" 
-                        id="email" 
-                        v-model="newsletter.email" 
-                        required
-                        placeholder="Enter your email" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                      >
+                      <label for="email" class="block text-sm font-medium leading-6 text-light-text-primary dark:text-dark-text-primary mb-2">Email Address</label>
+                      <div class="relative">
+                        <input 
+                          type="email" 
+                          id="email" 
+                          v-model="newsletter.email" 
+                          required
+                          placeholder="Enter your email" 
+                          class="block w-full rounded-lg bg-light-secondary dark:bg-dark-secondary border-0 px-4 py-3 text-light-text-primary dark:text-dark-text-primary shadow-sm ring-1 ring-inset ring-light-neutral-300 dark:ring-dark-neutral-700 placeholder:text-light-neutral-400 dark:placeholder:text-dark-neutral-400 focus:ring-2 focus:ring-accent-primary focus:outline-none transition-all duration-200 sm:text-sm"
+                        >
+                      </div>
                     </div>
                     <div class="pt-2">
                       <button 
                         type="submit" 
-                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-md transition-all duration-300 flex items-center justify-center"
-                        :class="{'opacity-75 cursor-not-allowed': newsletter.loading}"
+                        class="inline-flex items-center justify-center rounded-lg bg-orange-500 px-6 py-3 w-full text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         :disabled="newsletter.loading"
                       >
                         <svg v-if="newsletter.loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -479,17 +482,17 @@ const collections = ref([
     category: 'bracelets'
   },
   {
-    name: 'Watches',
-    description: 'Precision timepieces that combine functionality with sophisticated design.',
+    name: 'Keyholders',
+    description: 'Stylish and functional keyholders featuring elegant beadwork and durable design.',
     image: getPublicImageUrl('images/Neeon Moon 2.jpeg'),
-    category: 'watches'
+    category: 'keyholders'
   },
   {
-    name: 'Luxury Collection',
-    description: 'Exclusive high-end pieces for those special moments that deserve extraordinary jewelry.',
-    image: getPublicImageUrl('images/Neeon Moon 3.jpeg'),
-    category: 'luxury'
-  },
+      name: 'Custom Collection',
+      description: 'Exclusive high-end pieces for those special moments that deserve extraordinary jewelry.',
+      image: getPublicImageUrl('images/Neeon Moon 3.jpeg'),
+      category: 'Custom'
+    },
 ])
 
 // Function to provide fallback products if data loading fails

@@ -80,7 +80,7 @@
 
       <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex items-baseline justify-between border-b border-light-neutral-200 dark:border-dark-neutral-700 pt-24 pb-6">
-          <h1 class="text-4xl font-bold tracking-tight text-light-text-primary dark:text-dark-text-primary">Our Jewelry Collection</h1>
+          <h1 class="text-2xl lg:text-4xl font-bold tracking-tight text-light-text-primary dark:text-dark-text-primary">Our Collection</h1>
 
           <div class="flex items-center">
             <Menu as="div" class="relative inline-block text-left">

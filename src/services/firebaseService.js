@@ -178,6 +178,30 @@ export const firebaseService = {
     }
   },
 
+  // Custom Design Request
+  async submitCustomDesign(designData) {
+    try {
+      const customDesignsRef = collection(db, 'customDesigns');
+      
+      // Prepare the design request data with timestamps and status
+      const completeRequest = {
+        ...designData,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(customDesignsRef, completeRequest);
+      return {
+        id: docRef.id,
+        ...completeRequest
+      };
+    } catch (error) {
+      console.error('Error submitting custom design request:', error);
+      throw error;
+    }
+  },
+
   // Product operations
   async getProducts() {
     try {
