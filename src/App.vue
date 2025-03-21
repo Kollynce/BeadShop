@@ -350,8 +350,14 @@ function initializeMarketing() {
   
   /* Light Theme - 30% secondary/neutral colors */
   --color-light-neutral-100: #F9F9F9;
+  --color-light-neutral-200: #E9E9E9;
+  --color-light-neutral-300: #DADADA;
+  --color-light-neutral-400: #BABABA;
   --color-light-neutral-500: #9A9A9A;
+  --color-light-neutral-600: #6B6B6B;
   --color-light-neutral-700: #4A4A4A;
+  --color-light-neutral-800: #2C2C2C;
+  --color-light-neutral-900: #181818;
   
   /* Light Theme - 10% accent colors */
   --color-light-accent: #FFD60A;
@@ -363,13 +369,20 @@ function initializeMarketing() {
   --color-dark-secondary: #3B2A50;
   
   /* Dark Theme - 30% secondary/neutral colors */
+  --color-dark-neutral-100: #1A1A1A;
   --color-dark-neutral-200: #2C2C2C;
+  --color-dark-neutral-300: #404040;
+  --color-dark-neutral-400: #585858;
+  --color-dark-neutral-500: #717171;
+  --color-dark-neutral-600: #8F8F8F;
   --color-dark-neutral-700: #ADADAD;
+  --color-dark-neutral-800: #E5E5E5;
+  --color-dark-neutral-900: #F8F8F8;
   
   /* Dark Theme - 10% accent colors */
   --color-dark-accent: #FFD60A;
-  --color-dark-text-primary: #F8F1E9;
-  --color-dark-text-secondary: #DADADA;
+  --color-dark-text-primary: #FFFFFF;
+  --color-dark-text-secondary: #E5E5E5;
   
   /* Shared accent colors - 10% */
   --color-accent-primary: #FFD60A; /* Yellow */
@@ -378,13 +391,20 @@ function initializeMarketing() {
   --color-accent-quaternary: #1E90FF; /* Blue */
   
   /* Button colors - Orange */
-  --color-orange-500: #F97316;
-  --color-orange-600: #EA580C;
-  --color-orange-700: #C2410C;
+  --color-btn-primary: #FF8C00;
+  --color-btn-primary-hover: #FF7000;
+  --color-btn-primary-dark: #FF6000;
+  --color-btn-secondary: #6B4E9B;
+  
+  /* Transitions */
+  --transition-speed-fast: 200ms;
+  --transition-speed-normal: 300ms;
+  --transition-speed-slow: 500ms;
+  --transition-style: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
-  transition: color-scheme 0.3s ease;
+  transition: color-scheme var(--transition-speed-normal) ease;
 }
 
 html.dark {
@@ -392,7 +412,7 @@ html.dark {
 }
 
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color var(--transition-speed-normal) ease, color var(--transition-speed-normal) ease;
 }
 
 /* Cookie consent toggle switches */

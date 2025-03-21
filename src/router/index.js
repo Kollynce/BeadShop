@@ -18,6 +18,9 @@ import AdminProductsView from '../views/AdminProductsView.vue'
 import AdminProductForm from '../views/AdminProductForm.vue'
 import AdminOrders from '../views/AdminOrders.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
+import ShippingPolicyView from '@/views/ShippingPolicyView.vue'
+import ReturnsExchangesView from '@/views/ReturnsExchangesView.vue'
+import FAQsView from '@/views/FAQsView.vue'
 
 const routes = [
   {
@@ -134,6 +137,21 @@ const routes = [
     name: 'privacy-policy',
     component: () => import('../views/PrivacyPolicyView.vue'),
     meta: { title: 'Privacy Policy' }
+  },
+  {
+    path: '/shipping-policy',
+    name: 'shipping-policy',
+    component: ShippingPolicyView
+  },
+  {
+    path: '/returns-exchanges',
+    name: 'returns-exchanges',
+    component: ReturnsExchangesView
+  },
+  {
+    path: '/faqs',
+    name: 'faqs',
+    component: FAQsView
   },
   // Catch-all route - must be last
   {

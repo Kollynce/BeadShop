@@ -67,7 +67,7 @@
               :key="notification.id" 
               :class="[
                 'px-4 py-4 sm:px-6 flex',
-                notification.read ? 'bg-light-primary dark:bg-dark-primary' : 'bg-light-neutral-50 dark:bg-dark-neutral-800'
+                notification.read ? 'bg-light-primary dark:bg-dark-primary' : 'bg-light-neutral-50 dark:bg-dark-secondary'
               ]"
             >
               <div class="shrink-0 pt-0.5">
@@ -83,9 +83,9 @@
               <div class="ml-4 flex-1">
                 <div class="flex items-center justify-between">
                   <p class="font-medium text-light-text-primary dark:text-dark-text-primary">{{ notification.title }}</p>
-                  <p class="text-xs text-light-text-tertiary dark:text-dark-neutral-500">{{ formatDate(notification.createdAt) }}</p>
+                  <p class="text-xs text-light-text-tertiary dark:text-dark-neutral-800">{{ formatDate(notification.createdAt) }}</p>
                 </div>
-                <p class="mt-1 text-light-text-secondary dark:text-dark-neutral-400">{{ notification.message }}</p>
+                <p class="mt-1 text-light-text-secondary dark:text-light-secondary">{{ notification.message }}</p>
                 <div class="mt-2 flex justify-between items-center">
                   <div class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" :class="notificationBadgeClasses[notification.type] || notificationBadgeClasses.info">
                     {{ notification.type }}

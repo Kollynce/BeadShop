@@ -18,6 +18,14 @@ export const useThemeStore = defineStore('theme', () => {
   if (typeof window !== 'undefined') {
     theme.value = getInitialTheme();
     applyTheme(theme.value);
+    
+    // Listen for system preference changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      // Only change theme if user hasn't explicitly set a preference
+      if (!localStorage.getItem('theme')) {
+        theme.value = e.matches ? 'dark' : 'light';
+      }
+    });
   }
 
   // Watch for changes and update localStorage and DOM
@@ -28,10 +36,32 @@ export const useThemeStore = defineStore('theme', () => {
 
   // Apply theme to document
   function applyTheme(newTheme) {
+    // Apply with transition effect
     if (newTheme === 'dark') {
+      document.documentElement.classList.add('theme-transition');
       document.documentElement.classList.add('dark');
+      
+      // Remove the transition class after the transition completes
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transition');
+      }, 300);
     } else {
+      document.documentElement.classList.add('theme-transition');
       document.documentElement.classList.remove('dark');
+      
+      // Remove the transition class after the transition completes
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transition');
+      }, 300);
+    }
+    
+    // Update meta theme color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute(
+        'content', 
+        newTheme === 'dark' ? '#2A1B3D' : '#FFF5E1'
+      );
     }
   }
 
@@ -39,9 +69,24 @@ export const useThemeStore = defineStore('theme', () => {
   function toggleTheme() {
     theme.value = theme.value === 'light' ? 'dark' : 'light';
   }
+  
+  // Set a specific theme
+  function setTheme(newTheme) {
+    if (newTheme === 'light' || newTheme === 'dark') {
+      theme.value = newTheme;
+    }
+  }
+  
+  // Reset to system preference
+  function resetToSystemPreference() {
+    localStorage.removeItem('theme');
+    theme.value = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
 
   return {
     theme,
-    toggleTheme
+    toggleTheme,
+    setTheme,
+    resetToSystemPreference
   };
 });

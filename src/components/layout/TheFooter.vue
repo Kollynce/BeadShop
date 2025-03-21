@@ -32,9 +32,9 @@ import { getPublicImageUrl } from '@/utils/imageLoader';
           <h3 class="font-bold text-lg mb-4 text-light-text-primary dark:text-dark-text-primary border-b-2 border-orange-500 dark:border-orange-500 inline-block pb-1">Customer Service</h3>
           <ul class="space-y-2">
             <li><RouterLink to="/contact" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Contact Us</RouterLink></li>
-            <li><a href="#" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Shipping Policy</a></li>
-            <li><a href="#" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Returns & Exchanges</a></li>
-            <li><a href="#" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">FAQs</a></li>
+            <li><RouterLink to="/shipping-policy" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Shipping Policy</RouterLink></li>
+            <li><RouterLink to="/returns-exchanges" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">Returns & Exchanges</RouterLink></li>
+            <li><RouterLink to="/faqs" class="text-sm text-light-text-secondary dark:text-dark-neutral-700 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">FAQs</RouterLink></li>
           </ul>
         </div>
         

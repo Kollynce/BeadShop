@@ -136,38 +136,51 @@
                   >
                     <MenuItems class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-light-secondary dark:bg-dark-secondary py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <MenuItem v-slot="{ active }">
-                        <RouterLink to="/account" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Account</RouterLink>
+                        <RouterLink to="/account" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-primary' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Account</RouterLink>
                       </MenuItem>
                       <MenuItem v-if="isAdmin" v-slot="{ active }">
-                        <RouterLink to="/admin" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Shop Manager</RouterLink>
+                        <RouterLink to="/admin" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-primary' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Shop Manager</RouterLink>
                       </MenuItem>
                       <MenuItem v-if="isAdmin" v-slot="{ active }">
-                        <RouterLink to="/admin/users" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">User Manager</RouterLink>
+                        <RouterLink to="/admin/users" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-primary' : '', 'block px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">User Manager</RouterLink>
                       </MenuItem>
                       <MenuItem v-slot="{ active }">
-                        <button @click="logout" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-neutral-700' : '', 'block w-full text-left px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Logout</button>
+                        <button @click="logout" :class="[active ? 'bg-light-neutral-100 dark:bg-dark-primary' : '', 'block w-full text-left px-4 py-2 text-sm text-light-text-primary dark:text-dark-text-primary']">Logout</button>
                       </MenuItem>
                     </MenuItems>
                   </transition>
                 </Menu>
 
-                <!-- Theme toggle for desktop - 10% accent color -->
+                <!-- Enhanced Theme toggle for desktop -->
                 <button 
                   @click="toggleTheme" 
-                  class="p-2 text-light-neutral-500 dark:text-dark-neutral-500 hover:text-accent-primary dark:hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md transition-colors duration-200"
+                  class="relative h-8 w-16 rounded-full bg-gradient-to-r from-indigo-900 via-purple-800 to-orange-300 dark:from-orange-300 dark:via-blue-400 dark:to-indigo-900 p-1 transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary group overflow-hidden"
                   aria-label="Toggle theme"
                 >
-                  <SunIcon v-if="themeStore.theme === 'dark'" class="h-5 w-5" aria-hidden="true" />
-                  <MoonIcon v-else class="h-5 w-5" aria-hidden="true" />
+                  <span class="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-orange-300 dark:from-indigo-900 dark:via-purple-800 dark:to-orange-300 opacity-40 transition-opacity duration-500"></span>
+                  <span 
+                    class="block h-6 w-6 rounded-full bg-white shadow-md transform transition-all duration-500 ease-in-out"
+                    :class="themeStore.theme === 'dark' ? 'translate-x-8' : 'translate-x-0'"
+                  >
+                    <span class="absolute inset-0 flex items-center justify-center">
+                      <SunIcon v-if="themeStore.theme === 'dark'" class="h-4 w-4 text-orange-500 absolute transition-opacity duration-300 opacity-100" aria-hidden="true" />
+                      <MoonIcon v-else class="h-4 w-4 text-indigo-800 absolute transition-opacity duration-300 opacity-100" aria-hidden="true" />
+                    </span>
+                    <span class="absolute inset-0 flex items-center justify-center">
+                      <svg v-if="themeStore.theme === 'dark'" class="h-6 w-6 text-yellow-300 opacity-30 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="8"></circle>
+                      </svg>
+                      <svg v-else class="h-6 w-6 text-indigo-800 opacity-20" viewBox="0 0 24 24">
+                        <path d="M17.66 8A6.46 6.46 0 0 1 12 14.53 6.46 6.46 0 0 1 6.34 8a6.46 6.46 0 0 1 5.32-5.23 6.46 6.46 0 0 1 6 5.23z" fill="currentColor"></path>
+                      </svg>
+                    </span>
+                  </span>
+                  <span class="absolute inset-0 flex items-center opacity-20 pointer-events-none">
+                    <span class="h-1 w-1 rounded-full bg-white absolute left-3 top-2 animate-twinkle-1"></span>
+                    <span class="h-1 w-1 rounded-full bg-white absolute left-5 top-4 animate-twinkle-2"></span>
+                    <span class="h-1 w-1 rounded-full bg-white absolute right-3 top-1 animate-twinkle-3"></span>
+                  </span>
                 </button>
-              </div>
-
-              <!-- Search -->
-              <div class="flex lg:ml-6">
-                <a href="#" class="p-2 text-light-neutral-500 dark:text-dark-neutral-500 hover:text-accent-primary dark:hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:rounded-md">
-                  <span class="sr-only">Search</span>
-                  <MagnifyingGlassIcon class="size-6" aria-hidden="true" />
-                </a>
               </div>
 
               <!-- Notifications -->
@@ -232,7 +245,7 @@
               :key="notification.id" 
               :class="[
                 'px-4 py-3',
-                notification.read ? 'bg-light-primary dark:bg-dark-primary' : 'bg-light-neutral-50 dark:bg-dark-neutral-800'
+                notification.read ? 'bg-light-primary dark:bg-dark-primary' : 'bg-light-neutral-50 dark:bg-dark-primary'
               ]"
             >
               <div class="flex items-start">
@@ -456,5 +469,33 @@ body {
 
 .dark body {
   background-color: var(--color-dark-primary);
+}
+
+/* Add animation for the stars in dark mode */
+@keyframes twinkle-1 {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes twinkle-2 {
+  0%, 100% { opacity: 0.3; }
+  65% { opacity: 0.9; }
+}
+
+@keyframes twinkle-3 {
+  0%, 100% { opacity: 0.4; }
+  35% { opacity: 1; }
+}
+
+.animate-twinkle-1 {
+  animation: twinkle-1 3s ease-in-out infinite;
+}
+
+.animate-twinkle-2 {
+  animation: twinkle-2 4s ease-in-out infinite;
+}
+
+.animate-twinkle-3 {
+  animation: twinkle-3 5s ease-in-out infinite;
 }
 </style>
