@@ -4,7 +4,7 @@ import { computed, ref } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { XMarkIcon, ChevronUpIcon } from '@heroicons/vue/24/outline'
 import { formatCurrency } from '@/utils/currency'
-import { getImageUrl } from '@/utils/imageLoader' // Import the image loader utility
+import { getImageUrl } from '@/utils/imageLoader' // Only import getImageUrl
 
 const cartStore = useCartStore()
 const isUpdating = ref(false)
@@ -55,11 +55,22 @@ const removeItem = () => {
   }
 }
 
-// Function to process image URLs (same as in ProductDetailView)
+// Process image URLs consistently with ProductDetailView
 const processImageUrl = (url) => {
   if (!url) return getImageUrl('placeholder.jpg');
-  if (typeof url === 'string' && url.startsWith('base64://')) return url.replace('base64://', '');
-  return url;
+  
+  // Process base64 images
+  if (typeof url === 'string' && url.startsWith('base64://')) {
+    return url.replace('base64://', '');
+  }
+  
+  // Handle URLs directly
+  if (url && typeof url === 'string' && url.startsWith('http')) {
+    return url;
+  }
+  
+  // Use the image loader for relative paths
+  return getImageUrl(url);
 };
 
 // Handle image error by replacing with placeholder

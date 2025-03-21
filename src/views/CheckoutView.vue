@@ -102,7 +102,7 @@
           <form @submit.prevent="placeOrder">
             <!-- Shipping Information -->
             <div class="bg-light-secondary dark:bg-dark-secondary shadow rounded-lg overflow-hidden mb-8">
-              <div class="bg-light-neutral-100 dark:bg-dark-neutral-800 py-4 px-6 border-b border-light-neutral-200 dark:border-dark-neutral-700">
+              <div class="bg-light-neutral-100 dark:bg-dark-secondary py-4 px-6 border-b border-light-neutral-200 dark:border-dark-neutral-700">
                 <div class="flex items-center">
                   <div class="bg-accent-primary rounded-full h-8 w-8 flex items-center justify-center mr-3">
                     <svg class="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -271,7 +271,7 @@
 
             <!-- Payment Method Tabs -->
             <div class="bg-light-secondary dark:bg-dark-secondary shadow rounded-lg overflow-hidden mb-8">
-              <div class="bg-light-neutral-100 dark:bg-dark-neutral-800 py-4 px-6 border-b border-light-neutral-200 dark:border-dark-neutral-700">
+              <div class="bg-light-neutral-100 dark:bg-dark-secondary py-4 px-6 border-b border-light-neutral-200 dark:border-dark-neutral-700">
                 <div class="flex items-center">
                   <div class="bg-accent-primary rounded-full h-8 w-8 flex items-center justify-center mr-3">
                     <svg class="h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -325,7 +325,7 @@
 
                 <!-- Cash on Delivery -->
                 <div v-if="selectedPaymentMethod === 'cash'" class="mt-6">
-                  <div class="bg-light-neutral-100 dark:bg-dark-neutral-800 p-4 rounded-md">
+                  <div class="bg-light-neutral-100 dark:bg-dark-secondary p-4 rounded-md">
                     <p class="text-sm text-light-text-primary dark:text-dark-text-primary">
                       You will pay in cash when your order is delivered. Please have the exact amount ready.
                     </p>
@@ -352,13 +352,13 @@
                       <div class="flex items-center justify-between mb-4">
                         <p class="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">Accepted Cards</p>
                         <div class="flex space-x-2">
-                          <div class="h-8 w-12 rounded border bg-light-neutral-100 dark:bg-dark-neutral-800 flex items-center justify-center">
+                          <div class="h-8 w-12 rounded border bg-light-neutral-100 dark:bg-dark-secondary flex items-center justify-center">
                             <span class="text-xs font-bold text-blue-700">VISA</span>
                           </div>
-                          <div class="h-8 w-12 rounded border bg-light-neutral-100 dark:bg-dark-neutral-800 flex items-center justify-center">
+                          <div class="h-8 w-12 rounded border bg-light-neutral-100 dark:bg-dark-secondary flex items-center justify-center">
                             <span class="text-xs font-bold text-red-700">MC</span>
                           </div>
-                          <div class="h-8 w-12 rounded border bg-light-neutral-100 dark:bg-dark-neutral-800 flex items-center justify-center">
+                          <div class="h-8 w-12 rounded border bg-light-neutral-100 dark:bg-dark-secondary flex items-center justify-center">
                             <span class="text-xs font-bold text-blue-900">AMEX</span>
                           </div>
                         </div>
@@ -457,7 +457,7 @@
 
                 <!-- PayPal -->
                 <div v-if="selectedPaymentMethod === 'paypal'" class="mt-6">
-                  <div class="bg-light-neutral-100 dark:bg-dark-neutral-800 p-4 rounded-md text-center">
+                  <div class="bg-light-neutral-100 dark:bg-dark-secondary p-4 rounded-md text-center">
                     <div class="mx-auto max-w-[200px] mb-4">
                       <a 
                         href="/digital-wallet/ways-to-pay/add-payment-method" 
@@ -507,7 +507,7 @@
         <!-- Order summary -->
         <div class="mt-10 lg:mt-0">
           <div class="bg-light-secondary dark:bg-dark-secondary shadow rounded-lg overflow-hidden sticky top-6">
-            <div class="bg-light-neutral-100 dark:bg-dark-neutral-800 py-4 px-6 border-b border-light-neutral-200 dark:border-dark-neutral-700">
+            <div class="bg-light-neutral-100 dark:bg-dark-secondary py-4 px-6 border-b border-light-neutral-200 dark:border-dark-neutral-700">
               <h2 class="text-lg font-bold text-light-text-primary dark:text-dark-text-primary">Order Summary</h2>
             </div>
 
@@ -516,7 +516,10 @@
                 <ul class="-my-4 divide-y divide-light-neutral-200 dark:divide-dark-neutral-700">
                   <li v-for="item in cart" :key="item.id" class="py-4 flex">
                     <div class="flex-shrink-0 w-16 h-16 border border-light-neutral-200 dark:border-dark-neutral-700 rounded-md overflow-hidden">
-                      <img :src="item.imageUrl || item.image || 'https://placehold.co/64'" :alt="item.name" class="w-full h-full object-center object-cover">
+                      <img :src="processImageUrl(item.image)" 
+                           :alt="item.name" 
+                           class="w-full h-full object-center object-cover"
+                           @error="handleImageError">
                     </div>
                     <div class="ml-4 flex-1 flex flex-col">
                       <div>
@@ -565,7 +568,7 @@
 
             <div class="px-6 pb-6 pt-2">
               <div class="mt-2">
-                <div class="border border-light-neutral-300 dark:border-dark-neutral-600 rounded-md p-4 bg-light-neutral-100 dark:bg-dark-neutral-800">
+                <div class="border border-light-neutral-300 dark:border-dark-neutral-600 rounded-md p-4 bg-light-neutral-100 dark:bg-dark-secondary">
                   <div class="flex">
                     <div class="flex-shrink-0">
                       <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -606,6 +609,7 @@ import { firebaseService } from '../services/firebaseService'
 import { paypalService } from '../services/paypalService'
 import { formatCurrency } from '@/utils/currency'
 import { useNotificationStore } from '@/stores/notification'
+import { getImageUrl } from '@/utils/imageLoader' // Only import getImageUrl
 
 // Remove the conflicting import and implement the directive locally
 // import { vMask } from "@vuelidate/validators"
@@ -889,6 +893,29 @@ const cart = computed(() => cartStore.cart)
 const subtotal = computed(() => cartStore.subtotal)
 const shippingCost = computed(() => subtotal.value >= 100 ? 0 : 10)
 const total = computed(() => subtotal.value + shippingCost.value)
+
+// Process image URLs consistently with ProductDetailView
+const processImageUrl = (url) => {
+  if (!url) return getImageUrl('placeholder.jpg');
+  
+  // Process base64 images directly
+  if (typeof url === 'string' && url.startsWith('base64://')) {
+    return url.replace('base64://', '');
+  }
+  
+  // Handle URLs directly
+  if (url && typeof url === 'string' && url.startsWith('http')) {
+    return url;
+  }
+  
+  // Use the image loader for relative paths
+  return getImageUrl(url);
+};
+
+// Handle image errors by replacing with placeholder
+const handleImageError = (event) => {
+  event.target.src = getImageUrl('placeholder.jpg');
+};
 
 // Load user profile data if logged in
 onMounted(async () => {

@@ -86,7 +86,7 @@
                 <!-- Email Verification Component -->
                 <EmailVerificationStatus v-if="authStore.isAuthenticated" />
 
-                <div class="bg-white dark:bg-dark-neutral-800 shadow-sm rounded-lg overflow-hidden ring-1 ring-gray-900/5 dark:ring-dark-neutral-700">
+                <div class="bg-white dark:bg-dark-secondary shadow-sm rounded-lg overflow-hidden ring-1 ring-gray-900/5 dark:ring-dark-neutral-700">
                   <div class="bg-gradient-to-r from-accent-quaternary to-accent-secondary px-6 py-4">
                     <div class="flex justify-between items-center">
                       <h2 class="text-xl font-semibold text-white">Personal Details</h2>
@@ -104,20 +104,20 @@
                   <!-- View mode -->
                   <div v-if="!editMode" class="grid md:grid-cols-2 gap-y-6 gap-x-8">
                       <div class="profile-field">
-                        <p class="text-gray-800">Full Name</p>
-                        <p class="text-gray-800">{{ userProfile?.firstName || '-' }} {{ userProfile?.lastName || '' }}</p>
+                        <p class="text-gray-800 dark:text-gray-200">Full Name</p>
+                        <p class="text-gray-800 dark:text-gray-200">{{ userProfile?.firstName || '-' }} {{ userProfile?.lastName || '' }}</p>
                       </div>
                       <div class="profile-field">
-                        <p class="text-gray-800">Email</p>
-                        <p class="text-gray-800">{{ userProfile?.email || authStore.user.email }}</p>
+                        <p class="text-gray-800 dark:text-gray-200">Email</p>
+                        <p class="text-gray-800 dark:text-gray-200">{{ userProfile?.email || authStore.user.email }}</p>
                       </div>
                       <div class="profile-field">
-                        <p class="text-gray-800">Phone</p>
-                        <p class="text-gray-800">{{ userProfile?.phone || 'Not provided' }}</p>
+                        <p class="text-gray-800 dark:text-gray-200">Phone</p>
+                        <p class="text-gray-800 dark:text-gray-200">{{ userProfile?.phone || 'Not provided' }}</p>
                       </div>
                       <div class="profile-field">
-                        <p class="text-gray-800">Address</p>
-                        <p class="text-gray-800">{{ userProfile?.address || 'Not provided' }}</p>
+                        <p class="text-gray-800 dark:text-gray-200">Address</p>
+                        <p class="text-gray-800 dark:text-gray-200">{{ userProfile?.address || 'Not provided' }}</p>
                       </div>
                     </div>
 
@@ -230,7 +230,7 @@
 
               <!-- Orders Tab Panel -->
               <TabPanel :class="getTransitionClasses(300)" class="focus:outline-none">
-                <div class="bg-white dark:bg-dark-neutral-800 shadow-sm rounded-lg overflow-hidden ring-1 ring-gray-900/5 dark:ring-dark-neutral-700">
+                <div class="bg-white dark:bg-dark-secondary shadow-sm rounded-lg overflow-hidden ring-1 ring-gray-900/5 dark:ring-dark-neutral-700">
                   <div class="bg-gradient-to-r from-accent-quaternary to-accent-secondary px-6 py-4">
                     <h2 class="text-xl font-semibold text-white">Order History</h2>
                   </div>
@@ -256,7 +256,7 @@
                       class="space-y-6"
                       >
                         <div v-for="(order, index) in orders" :key="order.id" 
-                        class="bg-white dark:bg-dark-neutral-800 border border-gray-200 dark:border-dark-neutral-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
+                        class="bg-white dark:bg-dark-secondary border border-gray-200 dark:border-dark-neutral-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
                         :class="{'delay-100': index === 0, 'delay-150': index === 1, 'delay-200': index >= 2}">
                           <Disclosure v-slot="{ open }" as="div" defaultOpen>
                             <DisclosureButton 
@@ -294,20 +294,20 @@
                               </div>
                             </DisclosureButton>
                             
-                            <DisclosurePanel class="p-4 bg-white dark:bg-dark-neutral-800/50">
+                            <DisclosurePanel class="p-4 bg-white dark:bg-dark-secondary/50">
                               <div class="mb-2 pb-2 border-b border-dashed">
-                                <h4 class="text-sm font-medium text-gray-800 mb-2">Items</h4>
+                                <h4 class="text-sm font-medium text-gray-800 dark:text-gray-100 mb-2">Items</h4>
                               </div>
 
-                              <p v-if="!order.items || order.items.length === 0" class="text-sm italic text-gray-800">
+                              <p v-if="!order.items || order.items.length === 0" class="text-sm italic text-gray-800 dark:text-gray-300">
                                 No items found in this order
                               </p>
                               <div v-else class="space-y-2 mb-4">
                                 <div v-for="(item, itemIndex) in order.items" :key="itemIndex"
-                                  class="flex justify-between text-sm py-2 border-b border-gray-100 last:border-b-0">
+                                  class="flex justify-between text-sm py-2 border-b border-gray-100 dark:border-dark-neutral-700 last:border-b-0">
                                   <div class="flex items-center">
                                     <!-- Product image thumbnail - improved matching ProductCard.vue -->
-                                    <div class="h-14 w-14 rounded-md overflow-hidden border border-gray-200 mr-3 flex-shrink-0 bg-gray-50">
+                                    <div class="h-14 w-14 rounded-md overflow-hidden border border-gray-200 dark:border-dark-neutral-600 mr-3 flex-shrink-0 bg-gray-50 dark:bg-dark-neutral-800">
                                       <img
                                         :src="processImageUrl(item.imageUrl || item.image)"
                                         :alt="item.name"
@@ -319,12 +319,12 @@
 
                                     <!-- Item info -->
                                     <div>
-                                      <span class="text-gray-800 font-medium">{{ item.name }}</span>
+                                      <span class="text-gray-800 dark:text-gray-100 font-medium">{{ item.name }}</span>
                                       <div class="flex items-center mt-1">
-                                        <span class="bg-indigo-100 text-indigo-800 rounded-full w-5 h-5 flex items-center justify-center mr-2 text-xs">
+                                        <span class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full w-5 h-5 flex items-center justify-center mr-2 text-xs">
                                           {{ item.quantity }}
                                         </span>
-                                        <span class="text-xs text-gray-500 md:hidden">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 md:hidden">
                                           {{ formatCurrency(item.price) }} each
                                         </span>
                                       </div>
@@ -333,10 +333,10 @@
 
                                   <!-- Item price (for desktop) -->
                                   <div class="flex flex-col items-end">
-                                    <span class="text-gray-900 font-medium">
+                                    <span class="text-gray-900 dark:text-gray-100 font-medium">
                                       {{ formatCurrency(item.price * item.quantity) }}
                                     </span>
-                                    <span class="text-xs text-gray-500 hidden md:block">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 hidden md:block">
                                       {{ formatCurrency(item.price) }} each
                                     </span>
                                   </div>
@@ -345,13 +345,13 @@
 
                               <!-- Order summary and details -->
                               <div class="mt-4 flex flex-col space-y-2 text-sm">
-                                <div class="flex justify-between text-gray-800 pt-2 border-t">
+                                <div class="flex justify-between text-gray-800 dark:text-gray-200 pt-2 border-t dark:border-dark-neutral-700">
                                   <span>Order date:</span>
-                                  <span class="text-gray-800">{{ order.formattedDate }}</span>
+                                  <span class="text-gray-800 dark:text-gray-200">{{ order.formattedDate }}</span>
                                 </div>
-                                <div class="flex justify-between text-gray-800">
+                                <div class="flex justify-between text-gray-800 dark:text-gray-200">
                                   <span>Total:</span>
-                                  <span class="text-gray-800">{{ formatCurrency(order.total) }}</span>
+                                  <span class="text-gray-800 dark:text-gray-200">{{ formatCurrency(order.total) }}</span>
                                 </div>
                               </div>
                             </DisclosurePanel>
@@ -597,6 +597,14 @@ const handleImageError = (event) => {
   color: rgb(31 41 55);
 }
 .dark .field-label {
+  color: rgb(229 231 235);
+}
+
+/* Adding additional helper classes for dark mode text */
+.dark .profile-field p:first-child {
   color: rgb(209 213 219);
+}
+.dark .profile-field p:last-child {
+  color: rgb(229 231 235);
 }
 </style>
