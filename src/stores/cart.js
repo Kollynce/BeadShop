@@ -3,10 +3,14 @@ import { ref, computed } from 'vue'
 import { useNotificationStore } from './notification'
 
 export const useCartStore = defineStore('cart', {
-  state: () => ({
-    cart: [],
-    loading: false
-  }),
+  state: () => {
+    // Load cart data from localStorage on store initialization
+    const savedCart = localStorage.getItem('cart')
+    return {
+      cart: savedCart ? JSON.parse(savedCart) : [],
+      loading: false
+    }
+  },
 
   getters: {
     itemCount: (state) => {
@@ -19,6 +23,11 @@ export const useCartStore = defineStore('cart', {
   },
 
   actions: {
+    // Helper method to save cart to localStorage
+    saveCartToStorage() {
+      localStorage.setItem('cart', JSON.stringify(this.cart))
+    },
+
     async addToCart(product, quantity = 1) {
       const notificationStore = useNotificationStore()
       
@@ -48,6 +57,8 @@ export const useCartStore = defineStore('cart', {
             timeout: 3000
           })
         }
+        // Save to localStorage after adding
+        this.saveCartToStorage()
       } catch (error) {
         console.error('Error adding to cart:', error)
         notificationStore.addNotification({
@@ -73,6 +84,8 @@ export const useCartStore = defineStore('cart', {
             type: 'success',
             timeout: 3000
           })
+          // Save to localStorage after updating
+          this.saveCartToStorage()
         }
       } catch (error) {
         console.error('Error updating quantity:', error)
@@ -99,6 +112,8 @@ export const useCartStore = defineStore('cart', {
             type: 'info',
             timeout: 3000
           })
+          // Save to localStorage after removing
+          this.saveCartToStorage()
         }
       } catch (error) {
         console.error('Error removing from cart:', error)
@@ -113,6 +128,8 @@ export const useCartStore = defineStore('cart', {
 
     clearCart() {
       this.cart = []
+      // Clear localStorage when cart is cleared
+      localStorage.removeItem('cart')
     }
   }
 })

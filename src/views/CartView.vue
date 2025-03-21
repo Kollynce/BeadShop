@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { XMarkIcon, ChevronUpIcon } from '@heroicons/vue/24/outline'
 import { formatCurrency } from '@/utils/currency'
+import { getImageUrl } from '@/utils/imageLoader' // Import the image loader utility
 
 const cartStore = useCartStore()
 const isUpdating = ref(false)
@@ -53,6 +54,18 @@ const removeItem = () => {
     itemToRemove.value = null
   }
 }
+
+// Function to process image URLs (same as in ProductDetailView)
+const processImageUrl = (url) => {
+  if (!url) return getImageUrl('placeholder.jpg');
+  if (typeof url === 'string' && url.startsWith('base64://')) return url.replace('base64://', '');
+  return url;
+};
+
+// Handle image error by replacing with placeholder
+const handleImageError = (event) => {
+  event.target.src = getImageUrl('placeholder.jpg');
+};
 </script>
 
 <template>
@@ -136,10 +149,11 @@ const removeItem = () => {
               class="flex py-6 first:pt-0 items-center cart-item-transition"
               :class="{'opacity-50': isUpdating}">
             <div class="relative">
-              <img :src="item.image" 
+              <img :src="processImageUrl(item.image)" 
                    :alt="item.name" 
                    class="w-24 h-24 object-cover rounded-md shadow-sm" 
-                   loading="lazy">
+                   loading="lazy"
+                   @error="handleImageError">
             </div>
             
             <div class="ml-6 flex-grow">
